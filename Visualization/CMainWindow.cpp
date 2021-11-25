@@ -34,14 +34,14 @@ CMainWindow::CMainWindow()
 	
 	m_pFont = new QFont;
 	m_pFontMetrics = new QFontMetrics(*m_pFont);
-	
+
 	/* Source file properties */
 	m_pSourceFileLabel = new QLabel("File:");
 	m_pSourceFileEdit = new QLineEdit;
 	m_pSourceFileEdit->setMinimumWidth(m_pFontMetrics->width("U") * LineEdit_Length);
 	connect(m_pSourceFileEdit, SIGNAL(textChanged(const QString&)), this, SLOT(SourceFileEditor_handle(const QString&)), Qt::QueuedConnection);
 	
-	m_pBrowseSourceFileButton = new QPushButton("Browse");
+    m_pBrowseSourceFileButton = new QPushButton("Browse...");
 	connect(m_pBrowseSourceFileButton, SIGNAL(clicked()), this, SLOT(BrowseSourceFileClicked()), Qt::QueuedConnection);
 	
 	/* Destination file properties */
@@ -50,12 +50,19 @@ CMainWindow::CMainWindow()
 	m_pDestFileEdit->setMinimumWidth(m_pFontMetrics->width("U") * LineEdit_Length);
 	connect(m_pDestFileEdit, SIGNAL(focussed(bool)), this, SLOT(DestFileEditor_handle(bool)), Qt::QueuedConnection);
 	
-	m_pBrowseDestFileButton = new QPushButton("Browse");
+    m_pBrowseDestFileButton = new QPushButton("Browse...");
 	connect(m_pBrowseDestFileButton, SIGNAL(clicked()), this, SLOT(BrowseDestFileClicked()), Qt::QueuedConnection);
 	
 	m_pConvertButton = new QPushButton("Convert");
 	m_pConvertButton->setMaximumSize(m_pConvertButton->sizeHint());
 	connect(m_pConvertButton, SIGNAL(clicked()), this, SLOT(ConvertButtonClicked()));
+
+    /* Check boxes */
+    m_pCheckIgnoreTXTheader = new QCheckBox("Ignore TXT header");
+    m_pCheckAddCSVheader = new QCheckBox("Add CSV header");
+
+    m_pCheckIgnoreTXTheader->setCheckState(Qt::Checked);
+    m_pCheckAddCSVheader->setCheckState(Qt::Checked);
 	
 	QGridLayout* pGridLayout = new QGridLayout;
 	
@@ -68,10 +75,17 @@ CMainWindow::CMainWindow()
 	pGridLayout->addWidget(m_pBrowseDestFileButton, 1, 2);
 	
 	pGridLayout->setHorizontalSpacing(20);
+
+    QHBoxLayout* pCheckBoxLayout = new QHBoxLayout;
+
+    pCheckBoxLayout->addWidget(m_pCheckIgnoreTXTheader);
+    pCheckBoxLayout->addWidget(m_pCheckAddCSVheader);
 	
 	QLayout* pMainLayout = new QVBoxLayout;
 	pMainLayout->addItem(pGridLayout);
 	pMainLayout->setSpacing(20);
+    pMainLayout->addItem(pCheckBoxLayout);
+    pMainLayout->setSpacing(20);
 	pMainLayout->addWidget(m_pConvertButton);
 	pMainLayout->setAlignment(m_pConvertButton, Qt::AlignCenter);
 	
@@ -167,6 +181,59 @@ void CMainWindow::ClearStatusBar()
  *******************************************************************************
  *
  *   \par Name:
+ *              void Trim(std::string* str) \n
+ *
+ *   \par Purpose:
+ * 				Trim \n
+ *
+ *   \par Inputs:
+ * 				None \n
+ *
+ *   \par Outputs:
+ * 				None \n
+ *
+ *   \par Returns:
+ * 				None \n
+ *
+ *   \par Notes:
+ * 				None \n
+ *
+ *******************************************************************************
+ */
+void CMainWindow::Trim(std::string* str)
+{
+    BOOL bFlag = FALSE;
+
+    while(str->size() > 0)
+    {
+        bFlag = FALSE;
+        size_t zSize = str->size();
+
+        if(str->at(0) == ' ' || str->at(0) == '\t' || str->at(0) == '\n')
+        {
+            str->erase(0, 1);
+            bFlag = TRUE;
+        }
+
+        zSize = str->size();
+
+        if(str->at(zSize - 1) == ' ' || str->at(zSize - 1) == '\t' || str->at(zSize - 1) == '\n')
+        {
+            *str = str->substr(0, zSize - 1);
+            bFlag = TRUE;
+        }
+
+        if(!bFlag)
+        {
+            break;
+        }
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ *   \par Name:
  *              void ConvertButtonClicked() \n
  *
  *   \par Purpose:
@@ -226,10 +293,42 @@ void CMainWindow::ConvertButtonClicked()
 		m_pDestFileEdit->setText(m_pDestFileEdit->placeholderText());
 		m_pDestFileEdit->setPlaceholderText("");
 	}
-	
+
+    Trim(&strSourceFileName);
+    Trim(&strDestFileName);
+
+    /* Add CSV extanion */
+    size_t zPos_csv = strDestFileName.find(".csv");
+
+    if((zPos_csv == std::string::npos) || (zPos_csv != strDestFileName.size() - 4))
+    {
+        strDestFileName += ".csv";
+    }
+
+    /* Create Convert options */
+    ConvertOptions CO;
+
+    if(m_pCheckIgnoreTXTheader->checkState() == Qt::Checked)
+    {
+        CO.IgnoreTXTheader = TRUE;
+    }
+    else
+    {
+        CO.IgnoreTXTheader = FALSE;
+    }
+
+    if(m_pCheckAddCSVheader->checkState() == Qt::Checked)
+    {
+        CO.AddCSVheader = TRUE;
+    }
+    else
+    {
+        CO.AddCSVheader = FALSE;
+    }
+
 	S32 s32Status;
-	s32Status = CConverter::s32ConvertTXTtoCSV(strSourceFileName, strDestFileName);
-	
+    s32Status = CConverter::s32ConvertTXTtoCSV(strSourceFileName, strDestFileName, &CO);
+
 	switch(s32Status)
 	{
 	case 0:
@@ -237,7 +336,7 @@ void CMainWindow::ConvertButtonClicked()
 		SetStatusBar("Converted to " + strDestFileName);
 		break;
 	}
-		
+
 	case 1:
 	{
 		SetStatusBar("File \"" + strSourceFileName + "\" does not exist");
@@ -246,7 +345,7 @@ void CMainWindow::ConvertButtonClicked()
 		
 		break;
 	}
-	
+
 	case 2:
 	{
 		SetStatusBar("Destination \"" + strDestFileName + "\" already exist");
@@ -254,7 +353,7 @@ void CMainWindow::ConvertButtonClicked()
 		m_pWarningBox->Init();
 		break;
 	}
-	
+
 	default:
 	{
 		SetStatusBar("Unknown error");
@@ -323,7 +422,7 @@ void CMainWindow::BrowseSourceFileClicked()
  */
 void CMainWindow::BrowseDestFileClicked()
 {
-	QString qstrFileName = QFileDialog::getOpenFileName(0, "Select file", "", "TXT files (*.txt);; All (*)", 
+    QString qstrFileName = QFileDialog::getOpenFileName(0, "Select file", "", "TXT files (*.txt);; CSV files (*.csv);; All (*)",
 														0, QFileDialog::DontUseNativeDialog);
 	
 	if(qstrFileName.size() != 0)

@@ -18,6 +18,8 @@ public:
 private:
 	void SetStatusBar(std::string strMessage);
 	void ClearStatusBar();
+
+    void Trim(std::string* str);
 	
 	BOOL GenerateDestFileNameFromSource(const std::string& crstrSourceFileName, std::string* pstrDestFileName);
 	
@@ -49,6 +51,12 @@ private:
 	
 	/** Convert button */
 	QPushButton* m_pConvertButton;
+
+    /** Ignore TXT header check box */
+    QCheckBox* m_pCheckIgnoreTXTheader;
+
+    /** Add CSV header check box */
+    QCheckBox* m_pCheckAddCSVheader;
 		
 	/** Warning box */
 	CDlgWarning* m_pWarningBox;

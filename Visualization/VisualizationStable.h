@@ -29,6 +29,8 @@ namespace Visualization
 	class CLineEdit;
 	class CMainWindow;
 	class CConverter;
+
+    struct ConvertOptions;
 } /* End of namespace Tools */
 
 #include "UBaseTypes.h"

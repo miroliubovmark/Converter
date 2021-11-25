@@ -1,11 +1,17 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.21.0)
 
 set(PROJECT_NAME Visualization)
 project(${PROJECT_NAME})
+
 #set(TEST_PROJECT_NAME VisualizationTest)
+SET(CMAKE_GENERATOR_PLATFORM x64)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
+
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -fPIC")
+
+
 
 set(CMAKE_AUTOMOC ON)
 add_compile_options(-fPIC)
@@ -37,26 +43,20 @@ include_directories(${Qt5Core_INCLUDES})
 include_directories(${Qt5Widgets_INCLUDES})
 
 
-# Add sources to the test project
-#set(${TEST_PROJECT_NAME}_SOURCES
-#	UToolsTest.cpp
-#)
-
-# Add libraries to the test project
-#set(${TEST_PROJECT_NAME}_LIBS
-#	Visualization
-#)
-
-
-add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
+add_library(${PROJECT_NAME} STATIC ${HEADER_FILES} ${SOURCE_FILES})
 
 target_link_libraries(${PROJECT_NAME} ${Qt5Core_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${Qt5Widgets_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} Qt5::Core)
 
+
+
 add_executable(main main.cpp)
 
 target_link_libraries(main ${PROJECT_NAME})
+
+
+#set_target_properties(program-static PROPERTIES COMPILE_FLAGS -DBUILDER_STATIC_DEFINE)
 
 #add_executable(${TEST_PROJECT_NAME} ${TEST_PROJECT_NAME}.cpp)
 

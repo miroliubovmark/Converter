@@ -61,7 +61,8 @@ CConverter::~CConverter()
  *******************************************************************************
  *
  *   \par Name:
- *              S32 bConvertTXTtoCSV(std::string strSourceFileName, std::string strDestFileName) \n
+ *              S32 bConvertTXTtoCSV(std::string strSourceFileName, std::string strDestFileName,
+ *              ConvertOptions* pOptions = NULL, S8 s8SourceDelimeter = 0x20, S8 s8DestDelimeter = ',') \n
  *
  *   \par Purpose:
  * 				Convert file from TXT to CSV \n
@@ -69,6 +70,7 @@ CConverter::~CConverter()
  *   \par Inputs:
  * 				std::string strSourceFileName - source file name \n
  *				std::string strDestFileName - destination file name \n
+ *              ConvertOptions* pOptions = NULL - pointer to ConvertOptions \n
  *				S8 s8DestDelimeter = ',' - delimeter for CSV file \n
  *				S8 s8SourceDelimeter = 0x20 - delimeter in TXT file \n
  *
@@ -85,7 +87,8 @@ CConverter::~CConverter()
  *
  *******************************************************************************
  */
-S32 CConverter::s32ConvertTXTtoCSV(std::string strSourceFileName, std::string strDestFileName, S8 s8SourceDelimeter, S8 s8DestDelimeter)
+S32 CConverter::s32ConvertTXTtoCSV(std::string strSourceFileName, std::string strDestFileName, ConvertOptions* pOptions,
+								   S8 s8SourceDelimeter, S8 s8DestDelimeter)
 {
 	/** Stream for source file reading */
 	std::ifstream rSourceFile;
@@ -110,26 +113,35 @@ S32 CConverter::s32ConvertTXTtoCSV(std::string strSourceFileName, std::string st
 	{
 		return 2;
 	}
-	
-	
-	/* Converting */
-	
+
+	/* Converting */	
 	/** Line from source file */
 	std::string strReadLine;
 	
 	/** Line to destination file */
 	std::string strWriteLine;
-	
+
 	std::string strSubstr;
-	
-	size_t zPos1, zPos2;
+
+    size_t zPos1, zPos2, zPos3;
 	BOOL bFlag;
-	
+
 	strReadLine.reserve(100);
 	strWriteLine.reserve(100);
 	strSubstr.reserve(100);
-	
+
 	wDestFile.open(strDestFileName);
+
+	if(pOptions->IgnoreTXTheader)
+	{
+		std::getline(rSourceFile, strReadLine);
+	}
+
+	if(pOptions->AddCSVheader)
+	{
+		std::string strHeader = "X--Trace 1::[CH1],Y--Trace 1::[CH1]\n";
+		wDestFile.write(strHeader.c_str(), strHeader.size());
+	}
 	
 	/* Line interations */
 	while(std::getline(rSourceFile, strReadLine))
@@ -144,9 +156,10 @@ S32 CConverter::s32ConvertTXTtoCSV(std::string strSourceFileName, std::string st
 		while(!bFlag)
 		{
 			zPos2 = strReadLine.find(s8SourceDelimeter, zPos1);
-			
-			//printf("Pos2 = %zd\n", zPos2);
-			
+            zPos3 = strReadLine.find('\t', zPos1);  /* LTSpice save chart with '\t' delimeter */
+
+            zPos2 = zPos2 < zPos3 ? zPos2 : zPos3;
+						
 			if(zPos2 == std::string::npos)
 			{
 				strSubstr = strReadLine.substr(zPos1);
@@ -172,27 +185,7 @@ S32 CConverter::s32ConvertTXTtoCSV(std::string strSourceFileName, std::string st
 		strWriteLine.push_back('\n');
 		wDestFile.write(strWriteLine.c_str(), strWriteLine.size());
 	}
-	
-//	try
-//	{
-//		SourceFile.open(strSourceFileName);
-//	}
-//	catch(...)
-//	{
-//		/* Unable to open Source file */
-//		return 1;
-//	}
-	
-//	try
-//	{
-//		DestFile.open(strDestFileName);
-//	}
-//	catch(...)
-//	{
-//		/* Unable to open Destination file */
-//		return 2;
-//	}
-	
+
 	return 0;
 }
 
