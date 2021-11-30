@@ -6,11 +6,10 @@
 #include <complex>
 #include <cmath>
 
-#include "UBaseTypes.h"
+#include "VisualizationStable.h"
 
 namespace Visualization
 {
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 ///                             Interface                                                          ///
@@ -52,7 +51,7 @@ public:
         zSize(zSize),
         pXValues(std::make_unique<TX[]>(zSize)),
         pYValues(std::make_unique<TY[]>(zSize)) {};
-
+	
     inline void print(std::ostream& ostream)
     {
 

@@ -13,6 +13,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <memory>
 
 #include <QApplication>
 #include <QtWidgets>
@@ -29,14 +30,17 @@ namespace Visualization
 	class CLineEdit;
 	class CMainWindow;
 	class CConverter;
+	
+	template<class TX, class TY> class CDataSeries;
 
-    struct ConvertOptions;
+    struct FileOptions;
 } /* End of namespace Tools */
 
 #include "UBaseTypes.h"
 #include "CDlgWarning.h"
 #include "CLineEdit.h"
 #include "CMainWindow.h"
+#include "CMathUtils.h"
 #include "CConverter.h"
 
 #endif /* VISUALIZATIONSTABLE_H */

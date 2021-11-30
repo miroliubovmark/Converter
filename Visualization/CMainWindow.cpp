@@ -306,61 +306,61 @@ void CMainWindow::ConvertButtonClicked()
     }
 
     /* Create Convert options */
-    ConvertOptions CO;
+//    ConvertOptions CO;
 
-    if(m_pCheckIgnoreTXTheader->checkState() == Qt::Checked)
-    {
-        CO.IgnoreTXTheader = TRUE;
-    }
-    else
-    {
-        CO.IgnoreTXTheader = FALSE;
-    }
+//    if(m_pCheckIgnoreTXTheader->checkState() == Qt::Checked)
+//    {
+//        CO.IgnoreTXTheader = TRUE;
+//    }
+//    else
+//    {
+//        CO.IgnoreTXTheader = FALSE;
+//    }
 
-    if(m_pCheckAddCSVheader->checkState() == Qt::Checked)
-    {
-        CO.AddCSVheader = TRUE;
-    }
-    else
-    {
-        CO.AddCSVheader = FALSE;
-    }
+//    if(m_pCheckAddCSVheader->checkState() == Qt::Checked)
+//    {
+//        CO.AddCSVheader = TRUE;
+//    }
+//    else
+//    {
+//        CO.AddCSVheader = FALSE;
+//    }
 
-	S32 s32Status;
-    s32Status = CConverter::s32ConvertTXTtoCSV(strSourceFileName, strDestFileName, &CO);
+//	S32 s32Status;
+//    s32Status = CConverter::s32ConvertTXTtoCSV(strSourceFileName, strDestFileName, &CO);
 
-	switch(s32Status)
-	{
-	case 0:
-	{
-		SetStatusBar("Converted to " + strDestFileName);
-		break;
-	}
+//	switch(s32Status)
+//	{
+//	case 0:
+//	{
+//		SetStatusBar("Converted to " + strDestFileName);
+//		break;
+//	}
 
-	case 1:
-	{
-		SetStatusBar("File \"" + strSourceFileName + "\" does not exist");
-		m_pWarningBox->SetMessage("File \"" + strSourceFileName + "\" does not exist", WarningStatus::Warning);
-		m_pWarningBox->Init();
+//	case 1:
+//	{
+//		SetStatusBar("File \"" + strSourceFileName + "\" does not exist");
+//		m_pWarningBox->SetMessage("File \"" + strSourceFileName + "\" does not exist", WarningStatus::Warning);
+//		m_pWarningBox->Init();
 		
-		break;
-	}
+//		break;
+//	}
 
-	case 2:
-	{
-		SetStatusBar("Destination \"" + strDestFileName + "\" already exist");
-		m_pWarningBox->SetMessage("Destination \"" + strDestFileName + "\" already exist", WarningStatus::Warning);
-		m_pWarningBox->Init();
-		break;
-	}
+//	case 2:
+//	{
+//		SetStatusBar("Destination \"" + strDestFileName + "\" already exist");
+//		m_pWarningBox->SetMessage("Destination \"" + strDestFileName + "\" already exist", WarningStatus::Warning);
+//		m_pWarningBox->Init();
+//		break;
+//	}
 
-	default:
-	{
-		SetStatusBar("Unknown error");
-		m_pWarningBox->SetMessage("Unknown error", WarningStatus::Error);
-		m_pWarningBox->Init();
-	}
-	}
+//	default:
+//	{
+//		SetStatusBar("Unknown error");
+//		m_pWarningBox->SetMessage("Unknown error", WarningStatus::Error);
+//		m_pWarningBox->Init();
+//	}
+//	}
 }
 
 /**

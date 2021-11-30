@@ -3,13 +3,14 @@ cmake_minimum_required(VERSION 3.21.0)
 
 # Top level project
 project(Converter)
-SET(CMAKE_GENERATOR_PLATFORM x64)
+#SET(CMAKE_GENERATOR_PLATFORM x64)
 
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,-allow-multiple-definition -static-libgcc -static-libstdc++ -static")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -fPIC")
+#set(CMAKE_EXE_LINKER_FLAGS "-Wl,-allow-multiple-definition -static-libgcc -static-libstdc++ -static")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fPIC")
 
 
 #set(CMAKE_CXX_FLAGS_DEBUG_INIT "-Wall")
+
 
 
 # Shared libraries

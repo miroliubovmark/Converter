@@ -4,10 +4,11 @@ set(PROJECT_NAME Visualization)
 project(${PROJECT_NAME})
 
 #set(TEST_PROJECT_NAME VisualizationTest)
-SET(CMAKE_GENERATOR_PLATFORM x64)
+#SET(CMAKE_GENERATOR_PLATFORM x64)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall")
+
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -fPIC")
 
@@ -43,7 +44,7 @@ include_directories(${Qt5Core_INCLUDES})
 include_directories(${Qt5Widgets_INCLUDES})
 
 
-add_library(${PROJECT_NAME} STATIC ${HEADER_FILES} ${SOURCE_FILES})
+add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 
 target_link_libraries(${PROJECT_NAME} ${Qt5Core_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${Qt5Widgets_LIBRARIES})
