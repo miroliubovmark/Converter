@@ -1,4 +1,5 @@
 #include "CConverter.h"
+#include <vector>
 
 namespace Visualization
 {
@@ -191,14 +192,39 @@ CConverter::~CConverter()
 //	return 0;
 //}
 
+/**
+ *******************************************************************************
+ *
+ *   \par Name:
+ *              S32 ReadTXT(const std::string& crstrSourceFileName, const FileOptions& crFileOptions)
+ *
+ *   \par Purpose:
+ * 				Parse TXT file into internal CDataSeries object \n
+ *
+ *   \par Inputs:
+ * 				const std::string& crstrSourceFileName - source file name \n
+ *              const FileOptions& crFileOptions - parsing options \n
+ *
+ *   \par Outputs:
+ * 				None \n
+ *
+ *   \par Returns:
+ * 				0 - Ok \n
+ *				1 - source file does not exist \n
+ *
+ *   \par Notes:
+ * 				None \n
+ *
+ *******************************************************************************
+ */
 S32 CConverter::ReadTXT(const std::string& crstrSourceFileName, const FileOptions& crFileOptions)
 {
 	/** Stream for source file reading */
-	std::ifstream SourceFile;
+    std::ifstream rSourceFile;
 	
-	SourceFile.open(crstrSourceFileName);
+    rSourceFile.open(crstrSourceFileName);
 	
-	if(!SourceFile.is_open())
+    if(!rSourceFile.is_open())
 	{
 		/* File does not exist */
 		return 1;
@@ -209,14 +235,113 @@ S32 CConverter::ReadTXT(const std::string& crstrSourceFileName, const FileOption
 	/* Ignore header */
 	if(crFileOptions.IgnoreHeader)
 	{
-		std::getline(SourceFile, strReadLine);
+        std::getline(rSourceFile, strReadLine);
 	}
+
+    std::vector<std::string> strFileContents;
 	
-	/* File interations */
-	while(std::getline(SourceFile, strReadLine))
+    /* File interations */
+    while(std::getline(rSourceFile, strReadLine))
 	{
-		
+        strFileContents.push_back(strReadLine);
 	}
+
+    m_pDataSeries = new CDataSeries<F64,F64>(strFileContents.size());
+
+    /* Input parsing */
+    for(size_t zI = 0; zI < strFileContents.size(); zI++)
+    {
+        size_t zDelimPos = strFileContents[zI].find(crFileOptions.s8Delimeter);
+        std::string strXVal = strFileContents[zI].substr(0, zDelimPos);
+        std::string strYVal = strFileContents[zI].substr(zDelimPos + 1);
+        F64 f64XVal = std::stod(strXVal);
+        F64 f64YVal = std::stod(strYVal);
+        m_pDataSeries->SetX(zI, f64XVal);
+        m_pDataSeries->SetY(zI, f64YVal);
+    }
+    return 0;
 }
+
+/**
+ *******************************************************************************
+ *
+ *   \par Name:
+ *              S32 WriteCSV(const std::string& crstrDestFileName, const FileOptions& crFileOptions)
+ *
+ *   \par Purpose:
+ * 				Record current data (the contents of CDataSeries instance) into a file \n
+ *
+ *   \par Inputs:
+ * 				const std::string& crstrDestFileName - destination file name \n
+ *              const FileOptions& crFileOptions - options for saving \n
+ *
+ *   \par Outputs:
+ * 				None \n
+ *
+ *   \par Returns:
+ * 				0 - Ok \n
+ *				1 - m_pDataSeries does not point to an object (no series created just yet) \n
+ *				2 - Destination file already exists \n
+ *
+ *   \par Notes:
+ * 				None \n
+ *
+ *******************************************************************************
+ */
+S32 CConverter::WriteCSV(const std::string& crstrDestFileName, const FileOptions& crFileOptions)
+{
+
+    if(m_pDataSeries == NULL)
+    {
+        return 1;
+    }
+
+    std::ifstream rDestFileChecker;
+    rDestFileChecker.open(crstrDestFileName);
+
+    if(rDestFileChecker.is_open())
+    {
+        return 2;
+    }
+    rDestFileChecker.close();
+
+    /** Stream for source file reading */
+    std::ofstream wDestFile;
+
+    wDestFile.open(crstrDestFileName);
+
+    /* Ignore header */
+    if(!crFileOptions.IgnoreHeader)
+    {
+        std::string strHeader = "X--Trace 1::[CH1],Y--Trace 1::[CH1]\n";
+        wDestFile.write(strHeader.c_str(), strHeader.size());
+    }
+
+
+    for(size_t zI = 0; zI < m_pDataSeries->zGetSize(); zI++)
+    {
+        wDestFile << m_pDataSeries->tGetX(zI) << crFileOptions.s8Delimeter << m_pDataSeries->tGetY(zI) << std::endl;
+    }
+
+    return 0;
+}
+
+
+
+S32 CConverter::InterpolateData(U32 u32PointCount)
+{
+    CDataSeries<F64, F64>* pNewSeries = new CDataSeries<F64, F64>(u32PointCount);
+    F64 f64InputMin = m_pDataSeries->tGetX(0);
+    F64 f64InputMax = m_pDataSeries->tGetX(m_pDataSeries->zGetSize()-1);
+
+    for(U32 u32I = 0; u32I < u32PointCount; u32I++)
+    {
+        pNewSeries->SetX(u32I, f64InputMin + (f64InputMax - f64InputMin) * (u32I / u32PointCount - 1));
+    }
+    CMathUtils.Interpolate(m_pDataSeries, pNewSeries, IM_Linear, 0);
+
+    delete  m_pDataSeries;
+    m_pDataSeries = pNewSeries;
+};
 
 } /* End of namespace VISUALIZATION */

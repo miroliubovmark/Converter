@@ -48,9 +48,9 @@ public:
     void EnsureAccendingX() const;
 
     CDataSeries(size_t zSize) :
-        zSize(zSize),
         pXValues(std::make_unique<TX[]>(zSize)),
-        pYValues(std::make_unique<TY[]>(zSize)) {};
+        pYValues(std::make_unique<TY[]>(zSize)),
+        zSize(zSize){};
 	
     inline void print(std::ostream& ostream)
     {

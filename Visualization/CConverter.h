@@ -36,6 +36,8 @@ public:
 
     //static S32 s32ConvertTXTtoCSV(std::string strSourceFileName, std::string strDestFileName, ConvertOptions* pOptions = NULL, S8 s8SourceDelimeter = 0x20, S8 s8DestDelimeter = ',');
 	S32 ReadTXT(const std::string& crstrSourceFileName, const FileOptions& crFileOptions);
+    S32 WriteCSV(const std::string& crstrDestFileName, const FileOptions& crFileOptions);
+    S32 InterpolateData(U32 u32PointCount);
 	
 private:
 	CDataSeries<F64, F64>* m_pDataSeries;
