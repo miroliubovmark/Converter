@@ -206,12 +206,17 @@ S32 CConverter::ReadTXT(const std::string& crstrSourceFileName, const FileOption
 	
 	std::string strReadLine;
 	
+	/* Ignore header */
 	if(crFileOptions.IgnoreHeader)
 	{
 		std::getline(SourceFile, strReadLine);
 	}
 	
-	
+	/* File interations */
+	while(std::getline(SourceFile, strReadLine))
+	{
+		
+	}
 }
 
 } /* End of namespace VISUALIZATION */
