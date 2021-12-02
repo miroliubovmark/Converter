@@ -317,12 +317,11 @@ ErrorCode CConverter::WriteCSV(const std::string& crstrDestFileName, const FileO
     wDestFile.open(crstrDestFileName);
 
     /* Ignore header */
-    if(!crFileOptions.HeaderOpt)
+	if(crFileOptions.HeaderOpt)
     {
         std::string strHeader = "X--Trace 1::[CH1],Y--Trace 1::[CH1]\n";
         wDestFile.write(strHeader.c_str(), strHeader.size());
     }
-
 
     for(size_t zI = 0; zI < m_pDataSeries->zGetSize(); zI++)
     {
@@ -342,7 +341,7 @@ ErrorCode CConverter::InterpolateData(U32 u32PointCount)
     {
         pNewSeries->SetX(u32I, f64InputMin + (f64InputMax - f64InputMin) * (1.0 * u32I / (u32PointCount - 1)));
     }
-    CMathUtils::Interpolate(m_pDataSeries, pNewSeries, IM_Polynomial, 10);
+	CMathUtils::Interpolate(m_pDataSeries, pNewSeries, IM_Linear, 0);
 
     delete m_pDataSeries;
     m_pDataSeries = pNewSeries;

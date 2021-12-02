@@ -308,16 +308,18 @@ template<class T> inline void CMathUtils::Interpolate(const CDataSeries<T, T>* p
 
         T tXMin = pInput->tGetX(zInIndex);
         T tXMax = pInput->tGetX(zInIndex+1);
+
         for(size_t zI = 0; zI < zOutSize; zI++) {
             T tXVal = pOutput->tGetX(zI);
+
             while(tXMax < tXVal && zInIndex < zInSize - 1) {
                 zInIndex++;
                 tXMin = pInput->tGetX(zInIndex);
                 tXMax = pInput->tGetX(zInIndex+1);
             }
-            T tC0 = (tXVal-tXMin)/(tXMax-tXMin);
-            T tC1 = (tXMax-tXVal)/(tXMax-tXMin);
-            pOutput->SetY(zI, pInput->tGetY(zI) * tC0 + pInput->tGetY(zI+1) * tC1);
+			T tC1 = (tXVal-tXMin)/(tXMax-tXMin);
+			T tC0 = (tXMax-tXVal)/(tXMax-tXMin);
+			pOutput->SetY(zI, pInput->tGetY(zInIndex) * tC0 + pInput->tGetY(zInIndex+1) * tC1);
         }
     } break;
     }
