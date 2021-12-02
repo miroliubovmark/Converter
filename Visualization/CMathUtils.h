@@ -93,8 +93,8 @@ public:
 
     inline void print(std::ostream& ostream)
     {
-        for (int i = 0; i < zSize; i++) {
-            for (int j = 0; j < zSize; j++) {
+        for (size_t i = 0; i < zSize; i++) {
+            for (size_t j = 0; j < zSize; j++) {
                 ostream << tGet(i, j) << '\t';
             }
             ostream << "|\t" << tGet(i, zSize) << '\n';
@@ -141,7 +141,7 @@ template<class TX, class TY> inline size_t CDataSeries<TX, TY>::zGetSize() const
     return zSize;
 }
 template<class TX, class TY> inline void CDataSeries<TX, TY>::EnsureAccendingX() const{
-    for(int zI = 0; zI < zSize-1; zI++){
+    for(size_t zI = 0; zI < zSize-1; zI++){
         if(pXValues[zI+1] < pXValues[zI]){
             throw EIncorrectDataSeriesFormat("Values of X are expected to be in accending order");
         }
@@ -155,12 +155,12 @@ template<class T> inline void CMathUtils::FourierDirect(const CDataSeries<T, T>*
     size_t zInSize = pInput->zGetSize();
     T input_max = pInput->tGetX(pInput->zGetSize()-1);
 
-    for(int zI = 0; zI < zOutSize; zI++) {
+    for(size_t zI = 0; zI < zOutSize; zI++) {
         T tOmega = 2 * PI / input_max * zI;
         std::complex<T> tP = std::complex<T>(0, -tOmega);
 
         std::complex<T> tSum = 0;
-        for(int zJ = 0; zJ < zInSize - 1; zJ++) {
+        for(size_t zJ = 0; zJ < zInSize - 1; zJ++) {
             T x0 = pInput->tGetX(zJ); T x1 = pInput->tGetX(zJ+1);
             T y0 = pInput->tGetY(zJ); T y1 = pInput->tGetY(zJ+1);
 
@@ -178,11 +178,11 @@ template<class T> inline void CMathUtils::FourierReverse(const CDataSeries<T, st
     size_t zOutSize = pOutput->zGetSize();
     size_t zInSize = pInput->zGetSize();
 
-    for(int zI = 0; zI < zOutSize; zI++) {
+    for(size_t zI = 0; zI < zOutSize; zI++) {
         T tXVal = pOutput->tGetX(zI);
         std::complex<T> tSum = 0;
 
-        for(int zJ = 0; zJ < zInSize; zJ++) {
+        for(size_t zJ = 0; zJ < zInSize; zJ++) {
             std::complex<T> tP = std::complex<T>(0, pInput->tGetX(zJ));
             std::complex<T> tAmpl = pInput->tGetY(zJ);
 
@@ -206,7 +206,7 @@ template<class T> inline void CMathUtils::PolynomialDirect(const CDataSeries<T, 
 
 
     for(U16 zI = 0; zI < zOutSize; zI++){
-        for(int zJ = 0; zJ < zOutSize; zJ++) {
+        for(size_t zJ = 0; zJ < zOutSize; zJ++) {
             U16 pow = zI + zJ + 1;
             oSys.Set(zI, zJ, (std::pow(tInputMax, pow) - std::pow(tInputMin, pow)) / pow );
         }
@@ -214,7 +214,7 @@ template<class T> inline void CMathUtils::PolynomialDirect(const CDataSeries<T, 
 
     for(U16 zI = 0; zI < zOutSize; zI++) {
         T tSum = 0;
-        for(int zJ = 0; zJ < zInSize - 1; zJ++) {
+        for(size_t zJ = 0; zJ < zInSize - 1; zJ++) {
             T x0 = pInput->tGetX(zJ); T x1 = pInput->tGetX(zJ+1);
             T y0 = pInput->tGetY(zJ); T y1 = pInput->tGetY(zJ+1);
 
@@ -330,20 +330,20 @@ template<class T> inline void CLinearSystem<T>::AddMultiplied(size_t zTarget, si
     T* target_ptr = pGetRow(zTarget);
     T* source_ptr = pGetRow(zSource);
 
-    for (int i = 0; i < zSize + 1; i++) {
+    for (size_t i = 0; i < zSize + 1; i++) {
         target_ptr[i] += source_ptr[i] * factor;
     }
 }
 
 template<class T> inline void CLinearSystem<T>::MultiplyInplace(size_t target, T factor) {
     T* target_ptr = pGetRow(target);
-    for (int i = 0; i < zSize + 1; i++) {
+    for (size_t i = 0; i < zSize + 1; i++) {
         target_ptr[i] *= factor;
     }
 }
 
 template<class T> inline void CLinearSystem<T>::SwapRows(T* r1, T* r2) {
-    for (int i = 0; i < zSize + 1; i++) {
+    for (size_t i = 0; i < zSize + 1; i++) {
         T t = r1[i];
         r1[i] = r2[i];
         r2[i] = t;
@@ -398,12 +398,12 @@ template<class T> inline CLinearSystem<T>::CLinearSystem(size_t sz) :
 
 template<class T> inline void CLinearSystem<T>::SolveGauss(T* result_to)
 {
-    for (int i = 0; i < zSize; i++) {
+    for (int i = 0; i < (int) zSize; i++) {
 
         int unempty = i;
         while (tGet(unempty, i) == 0) {
             unempty++;
-            if (unempty == zSize) {
+            if (unempty == (int) zSize) {
                 std::cout << "Unsolvable\n";
                 return;
             }
@@ -414,7 +414,7 @@ template<class T> inline void CLinearSystem<T>::SolveGauss(T* result_to)
         }
 
         MultiplyInplace(i, 1 / tGet(i, i));
-        for (int j = 0; j < zSize; j++) {
+        for (int j = 0; j < (int) zSize; j++) {
             if (j == i) {
                 continue;
             }
@@ -423,7 +423,7 @@ template<class T> inline void CLinearSystem<T>::SolveGauss(T* result_to)
     }
 
 
-    for (int i = 0; i < zSize; i++) {
+    for (size_t i = 0; i < zSize; i++) {
         result_to[i] = pData[(i + 1) * (zSize + 1) - 1];
     }
 }

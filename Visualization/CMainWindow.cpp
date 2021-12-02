@@ -230,6 +230,35 @@ void CMainWindow::Trim(std::string* str)
     }
 }
 
+BOOL CMainWindow::AddFileOptions(FileOptions& rSourceOptions, FileOptions& rDestOptions)
+{
+	if(m_pCheckIgnoreTXTheader->checkState() == Qt::Checked)
+	{
+		rSourceOptions.HeaderOpt = TRUE;
+	}
+	else
+	{
+		rSourceOptions.HeaderOpt = FALSE;
+	}
+	
+	if(m_pCheckAddCSVheader->checkState() == Qt::Checked)
+	{
+		rDestOptions.HeaderOpt = TRUE;
+	}
+	else
+	{
+		rDestOptions.HeaderOpt = FALSE;
+	}
+	
+	rSourceOptions.FType = FT_TXT;
+	rSourceOptions.s8Delimeter = '\t';
+	
+	rDestOptions.FType = FT_CSV;
+	rDestOptions.s8Delimeter = ',';
+	
+	return TRUE;
+}
+
 /**
  *******************************************************************************
  *
@@ -305,7 +334,50 @@ void CMainWindow::ConvertButtonClicked()
         strDestFileName += ".csv";
     }
 
-    /* Create Convert options */
+    /* Create file options */
+	FileOptions SourceOptions, DestOptions;
+	
+	AddFileOptions(SourceOptions, DestOptions);
+	
+	/* Convert */
+	CConverter Converter;
+	
+	ErrorCode Code = Converter.TXTtoCSV(strSourceFileName, strDestFileName, SourceOptions, DestOptions);
+	
+	switch (Code)
+	{
+	case EC_OK:
+	{
+		SetStatusBar("Converted to " + strDestFileName);
+		break;
+	}
+		
+	case EC_SourceFileDoesNotExist:
+	{
+		SetStatusBar("File \"" + strSourceFileName + "\" does not exist");
+		m_pWarningBox->SetMessage("File \"" + strSourceFileName + "\" does not exist", WarningStatus::Warning);
+		m_pWarningBox->Init();
+		
+		break;
+	}
+
+	case EC_DestFileAlreadyExist:
+	{
+		SetStatusBar("Destination \"" + strDestFileName + "\" already exist");
+		m_pWarningBox->SetMessage("Destination \"" + strDestFileName + "\" already exist", WarningStatus::Warning);
+		m_pWarningBox->Init();
+
+		break;
+	}
+
+	default:
+	{
+		SetStatusBar("Unknown error");
+		m_pWarningBox->SetMessage("Unknown error", WarningStatus::Error);
+		m_pWarningBox->Init();
+	}
+	}
+	
 //    ConvertOptions CO;
 
 //    if(m_pCheckIgnoreTXTheader->checkState() == Qt::Checked)

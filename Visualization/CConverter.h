@@ -23,8 +23,17 @@ enum FileType
 struct FileOptions
 {
 	FileType FType;
-    BOOL IgnoreHeader;
+    BOOL HeaderOpt;
 	S8 s8Delimeter;
+};
+
+enum ErrorCode
+{
+	EC_OK = 0,
+	EC_SourceFileDoesNotExist,
+	EC_DestFileAlreadyExist,
+	EC_DataSeriesDoesNotExist,
+	EC_UnknownError = 101
 };
 
 
@@ -33,14 +42,21 @@ class CConverter
 public:
 	CConverter();
 	~CConverter();
+	
+	ErrorCode TXTtoCSV(const std::string& crstrSourceFileName, const std::string& crstrDestFileName, 
+				 const FileOptions& crSourecOpt, const FileOptions& crDestcOpt, U32 u32PointCount = 10000);
 
     //static S32 s32ConvertTXTtoCSV(std::string strSourceFileName, std::string strDestFileName, ConvertOptions* pOptions = NULL, S8 s8SourceDelimeter = 0x20, S8 s8DestDelimeter = ',');
-	S32 ReadTXT(const std::string& crstrSourceFileName, const FileOptions& crFileOptions);
-    S32 WriteCSV(const std::string& crstrDestFileName, const FileOptions& crFileOptions);
-    S32 InterpolateData(U32 u32PointCount);
+	
 	
 private:
 	CDataSeries<F64, F64>* m_pDataSeries;
+	
+	void Clear();
+	
+	ErrorCode ReadTXT(const std::string& crstrSourceFileName, const FileOptions& crFileOptions);
+    ErrorCode WriteCSV(const std::string& crstrDestFileName, const FileOptions& crFileOptions);
+    ErrorCode InterpolateData(U32 u32PointCount);
 };
 
 } /* End of namespace Visualization */

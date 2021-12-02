@@ -59,6 +59,12 @@ CConverter::~CConverter()
 {
 }
 
+void CConverter::Clear()
+{
+	delete m_pDataSeries;
+	m_pDataSeries = NULL;
+}
+
 /**
  *******************************************************************************
  *
@@ -196,7 +202,7 @@ CConverter::~CConverter()
  *******************************************************************************
  *
  *   \par Name:
- *              S32 ReadTXT(const std::string& crstrSourceFileName, const FileOptions& crFileOptions)
+ *              ErrorCode ReadTXT(const std::string& crstrSourceFileName, const FileOptions& crFileOptions)
  *
  *   \par Purpose:
  * 				Parse TXT file into internal CDataSeries object \n
@@ -209,15 +215,14 @@ CConverter::~CConverter()
  * 				None \n
  *
  *   \par Returns:
- * 				0 - Ok \n
- *				1 - source file does not exist \n
+ * 				Error code \n
  *
  *   \par Notes:
  * 				None \n
  *
  *******************************************************************************
  */
-S32 CConverter::ReadTXT(const std::string& crstrSourceFileName, const FileOptions& crFileOptions)
+ErrorCode CConverter::ReadTXT(const std::string& crstrSourceFileName, const FileOptions& crFileOptions)
 {
 	/** Stream for source file reading */
     std::ifstream rSourceFile;
@@ -227,13 +232,13 @@ S32 CConverter::ReadTXT(const std::string& crstrSourceFileName, const FileOption
     if(!rSourceFile.is_open())
 	{
 		/* File does not exist */
-		return 1;
+		return EC_SourceFileDoesNotExist;
 	}
 	
 	std::string strReadLine;
 	
 	/* Ignore header */
-	if(crFileOptions.IgnoreHeader)
+	if(crFileOptions.HeaderOpt)
 	{
         std::getline(rSourceFile, strReadLine);
 	}
@@ -259,7 +264,8 @@ S32 CConverter::ReadTXT(const std::string& crstrSourceFileName, const FileOption
         m_pDataSeries->SetX(zI, f64XVal);
         m_pDataSeries->SetY(zI, f64YVal);
     }
-    return 0;
+
+    return EC_OK;
 }
 
 /**
@@ -288,12 +294,11 @@ S32 CConverter::ReadTXT(const std::string& crstrSourceFileName, const FileOption
  *
  *******************************************************************************
  */
-S32 CConverter::WriteCSV(const std::string& crstrDestFileName, const FileOptions& crFileOptions)
+ErrorCode CConverter::WriteCSV(const std::string& crstrDestFileName, const FileOptions& crFileOptions)
 {
-
     if(m_pDataSeries == NULL)
     {
-        return 1;
+        return EC_DataSeriesDoesNotExist;
     }
 
     std::ifstream rDestFileChecker;
@@ -301,8 +306,9 @@ S32 CConverter::WriteCSV(const std::string& crstrDestFileName, const FileOptions
 
     if(rDestFileChecker.is_open())
     {
-        return 2;
+        return EC_DestFileAlreadyExist;
     }
+	
     rDestFileChecker.close();
 
     /** Stream for source file reading */
@@ -311,7 +317,7 @@ S32 CConverter::WriteCSV(const std::string& crstrDestFileName, const FileOptions
     wDestFile.open(crstrDestFileName);
 
     /* Ignore header */
-    if(!crFileOptions.IgnoreHeader)
+    if(!crFileOptions.HeaderOpt)
     {
         std::string strHeader = "X--Trace 1::[CH1],Y--Trace 1::[CH1]\n";
         wDestFile.write(strHeader.c_str(), strHeader.size());
@@ -323,12 +329,10 @@ S32 CConverter::WriteCSV(const std::string& crstrDestFileName, const FileOptions
         wDestFile << m_pDataSeries->tGetX(zI) << crFileOptions.s8Delimeter << m_pDataSeries->tGetY(zI) << std::endl;
     }
 
-    return 0;
+    return EC_OK;
 }
 
-
-
-S32 CConverter::InterpolateData(U32 u32PointCount)
+ErrorCode CConverter::InterpolateData(U32 u32PointCount)
 {
     CDataSeries<F64, F64>* pNewSeries = new CDataSeries<F64, F64>(u32PointCount);
     F64 f64InputMin = m_pDataSeries->tGetX(0);
@@ -336,12 +340,38 @@ S32 CConverter::InterpolateData(U32 u32PointCount)
 
     for(U32 u32I = 0; u32I < u32PointCount; u32I++)
     {
-        pNewSeries->SetX(u32I, f64InputMin + (f64InputMax - f64InputMin) * (u32I / u32PointCount - 1));
+        pNewSeries->SetX(u32I, f64InputMin + (f64InputMax - f64InputMin) * (1.0 * u32I / (u32PointCount - 1)));
     }
-    CMathUtils.Interpolate(m_pDataSeries, pNewSeries, IM_Linear, 0);
+    CMathUtils::Interpolate(m_pDataSeries, pNewSeries, IM_Polynomial, 10);
 
-    delete  m_pDataSeries;
+    delete m_pDataSeries;
     m_pDataSeries = pNewSeries;
-};
+	
+	return EC_OK;
+}
+
+ErrorCode CConverter::TXTtoCSV(const std::string& crstrSourceFileName, const std::string& crstrDestFileName, 
+			 const FileOptions& crSourecOpt, const FileOptions& crDestcOpt, U32 u32PointCount)
+{
+	Clear();
+	
+	ErrorCode Code = ReadTXT(crstrSourceFileName, crSourecOpt);
+	
+	if(Code != EC_OK)
+	{
+		return Code;
+	}
+	
+	InterpolateData(u32PointCount);
+	
+	Code = WriteCSV(crstrDestFileName, crDestcOpt);
+	
+	if(Code != EC_OK)
+	{
+		return Code;
+	}
+	
+	return EC_OK;
+}
 
 } /* End of namespace VISUALIZATION */

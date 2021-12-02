@@ -22,6 +22,7 @@ private:
     void Trim(std::string* str);
 	
 	BOOL GenerateDestFileNameFromSource(const std::string& crstrSourceFileName, std::string* pstrDestFileName);
+	BOOL AddFileOptions(FileOptions& rSourceOptions, FileOptions& rDestOptions);
 	
 	/** Main widget */
 	QWidget* m_pMainWidget;
