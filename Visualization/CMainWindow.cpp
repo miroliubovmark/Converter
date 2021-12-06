@@ -342,7 +342,7 @@ void CMainWindow::ConvertButtonClicked()
 	/* Convert */
 	CConverter Converter;
 	
-	ErrorCode Code = Converter.TXTtoCSV(strSourceFileName, strDestFileName, SourceOptions, DestOptions);
+    ErrorCode Code = Converter.TXTtoCSV(strSourceFileName, strDestFileName, SourceOptions, DestOptions, false);
 	
 	switch (Code)
 	{
@@ -363,8 +363,8 @@ void CMainWindow::ConvertButtonClicked()
 
 	case EC_DestFileAlreadyExist:
 	{
-		SetStatusBar("Destination \"" + strDestFileName + "\" already exist");
-		m_pWarningBox->SetMessage("Destination \"" + strDestFileName + "\" already exist", WarningStatus::Warning);
+        SetStatusBar("Destination \"" + strDestFileName + "\" already exists");
+        m_pWarningBox->SetMessage("Destination \"" + strDestFileName + "\" already exists", WarningStatus::Warning);
 		m_pWarningBox->Init();
 
 		break;

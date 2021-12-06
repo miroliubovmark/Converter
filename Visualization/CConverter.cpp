@@ -222,7 +222,7 @@ void CConverter::Clear()
  *
  *******************************************************************************
  */
-ErrorCode CConverter::ReadTXT(const std::string& crstrSourceFileName, const FileOptions& crFileOptions)
+ErrorCode CConverter::Read(const std::string& crstrSourceFileName, const FileOptions& crFileOptions, BOOL bThreeCols)
 {
 	/** Stream for source file reading */
     std::ifstream rSourceFile;
@@ -256,9 +256,15 @@ ErrorCode CConverter::ReadTXT(const std::string& crstrSourceFileName, const File
     /* Input parsing */
     for(size_t zI = 0; zI < strFileContents.size(); zI++)
     {
-        size_t zDelimPos = strFileContents[zI].find(crFileOptions.s8Delimeter);
-        std::string strXVal = strFileContents[zI].substr(0, zDelimPos);
-        std::string strYVal = strFileContents[zI].substr(zDelimPos + 1);
+        size_t zDelim1Pos = strFileContents[zI].find(crFileOptions.s8Delimeter);
+
+        std::string strXVal = strFileContents[zI].substr(0, zDelim1Pos);
+        std::string strYVal = strFileContents[zI].substr(zDelim1Pos + 1);
+
+        if(bThreeCols){
+            size_t zDelim2Pos = strYVal.find(crFileOptions.s8Delimeter);
+            strYVal = strYVal.substr(zDelim2Pos + 1);
+        }
         F64 f64XVal = std::stod(strXVal);
         F64 f64YVal = std::stod(strYVal);
         m_pDataSeries->SetX(zI, f64XVal);
@@ -294,7 +300,7 @@ ErrorCode CConverter::ReadTXT(const std::string& crstrSourceFileName, const File
  *
  *******************************************************************************
  */
-ErrorCode CConverter::WriteCSV(const std::string& crstrDestFileName, const FileOptions& crFileOptions)
+ErrorCode CConverter::Write(const std::string& crstrDestFileName, const FileOptions& crFileOptions)
 {
     if(m_pDataSeries == NULL)
     {
@@ -311,7 +317,7 @@ ErrorCode CConverter::WriteCSV(const std::string& crstrDestFileName, const FileO
 	
     rDestFileChecker.close();
 
-    /** Stream for source file reading */
+    /** Stream for file writing */
     std::ofstream wDestFile;
 
     wDestFile.open(crstrDestFileName);
@@ -319,7 +325,17 @@ ErrorCode CConverter::WriteCSV(const std::string& crstrDestFileName, const FileO
     /* Ignore header */
 	if(crFileOptions.HeaderOpt)
     {
-        std::string strHeader = "X--Trace 1::[CH1],Y--Trace 1::[CH1]\n";
+        std::string strHeader;
+        switch(crFileOptions.FType) {
+        case FT_TXT:
+            strHeader = "time\tV(n001)\n";
+            break;
+        case FT_CSV:
+            strHeader = "X--Trace 1::[CH1],Y--Trace 1::[CH1]\n";
+            break;
+        default:
+            return EC_UnknownError;
+        }
         wDestFile.write(strHeader.c_str(), strHeader.size());
     }
 
@@ -349,21 +365,40 @@ ErrorCode CConverter::InterpolateData(U32 u32PointCount)
 	return EC_OK;
 }
 
-ErrorCode CConverter::TXTtoCSV(const std::string& crstrSourceFileName, const std::string& crstrDestFileName, 
-			 const FileOptions& crSourecOpt, const FileOptions& crDestcOpt, U32 u32PointCount)
+ErrorCode CConverter::DifferenciateData(U32 u32Order)
 {
+
+    CMathUtils::ComputeDerivatives(m_pDataSeries, m_pDataSeries, DM_Polynomial, u32Order);
+
+    return EC_OK;
+}
+
+ErrorCode CConverter::TXTtoCSV(const std::string& crstrSourceFileName, const std::string& crstrDestFileName,
+             const FileOptions& crSourecOpt, const FileOptions& crDestcOpt, BOOL bCalculateTau, U32 u32PointCount)
+{
+
 	Clear();
+
+
 	
-	ErrorCode Code = ReadTXT(crstrSourceFileName, crSourecOpt);
+    ErrorCode Code = Read(crstrSourceFileName, crSourecOpt, bCalculateTau);
 	
 	if(Code != EC_OK)
 	{
 		return Code;
 	}
+
+
+    m_pDataSeries->print(std::cout);
 	
-	InterpolateData(u32PointCount);
+    if(bCalculateTau) {
+        DifferenciateData(7);
+    } else{
+        InterpolateData(u32PointCount);
+    }
+
 	
-	Code = WriteCSV(crstrDestFileName, crDestcOpt);
+    Code = Write(crstrDestFileName, crDestcOpt);
 	
 	if(Code != EC_OK)
 	{

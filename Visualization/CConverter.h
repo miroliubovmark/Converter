@@ -44,7 +44,7 @@ public:
 	~CConverter();
 	
 	ErrorCode TXTtoCSV(const std::string& crstrSourceFileName, const std::string& crstrDestFileName, 
-				 const FileOptions& crSourecOpt, const FileOptions& crDestcOpt, U32 u32PointCount = 10000);
+                 const FileOptions& crSourecOpt, const FileOptions& crDestcOpt, BOOL bCalculateTau, U32 u32PointCount = 10000);
 
     //static S32 s32ConvertTXTtoCSV(std::string strSourceFileName, std::string strDestFileName, ConvertOptions* pOptions = NULL, S8 s8SourceDelimeter = 0x20, S8 s8DestDelimeter = ',');
 	
@@ -54,9 +54,10 @@ private:
 	
 	void Clear();
 	
-	ErrorCode ReadTXT(const std::string& crstrSourceFileName, const FileOptions& crFileOptions);
-    ErrorCode WriteCSV(const std::string& crstrDestFileName, const FileOptions& crFileOptions);
+    ErrorCode Read(const std::string& crstrSourceFileName, const FileOptions& crFileOptions, BOOL bThreeCols);
+    ErrorCode Write(const std::string& crstrDestFileName, const FileOptions& crFileOptions);
     ErrorCode InterpolateData(U32 u32PointCount);
+    ErrorCode DifferenciateData(U32 u32Order);
 };
 
 } /* End of namespace Visualization */
