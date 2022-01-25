@@ -97,9 +97,9 @@ void CWdgGroupDelayPage::CalculateButtonClicked()
 	
 	if(strSourceFileName.empty())
 	{
-		m_pMainWindow->SetStatusBar("Warning: TXT file name is empty");
+		m_pMainWindow->SetStatusBar("Warning: SOURCE file name is empty");
 		
-		m_pWarningBox->SetMessage("TXT file name is empty", WarningStatus::Warning);
+		m_pWarningBox->SetMessage("SOURCE file name is empty", WarningStatus::Warning);
 		m_pWarningBox->Init();
 		
 		return;
@@ -107,9 +107,9 @@ void CWdgGroupDelayPage::CalculateButtonClicked()
 	
 	if((m_pWdgFileNamesReader->GetDestFileText().size() == 0) && (m_pWdgFileNamesReader->GetDestPlaceholder().size() == 0))
 	{
-		m_pMainWindow->SetStatusBar("Warning: CSV file name is empty");
+		m_pMainWindow->SetStatusBar("Warning: DESTINATION file name is empty");
 		
-		m_pWarningBox->SetMessage("CSV file name is empty", WarningStatus::Warning);
+		m_pWarningBox->SetMessage("DESTINATION file name is empty", WarningStatus::Warning);
 		m_pWarningBox->Init();
 		
 		return;
@@ -128,6 +128,16 @@ void CWdgGroupDelayPage::CalculateButtonClicked()
 
     CConverter::Trim(&strSourceFileName);
     CConverter::Trim(&strDestFileName);
+	
+	CConverter Converter;
+	
+	/* Here should be code for calculating group delay */
+	
+	/* strSourceFileName - name of source file
+	 * strDestFileName - name of destination file
+	 */
+	
+	
 }
 
 } /* End of namespace VISUALIZATION */
