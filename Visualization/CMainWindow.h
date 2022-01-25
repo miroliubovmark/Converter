@@ -14,61 +14,28 @@ class CMainWindow : public QMainWindow
 public:
 	CMainWindow();
 	~CMainWindow();
-
-private:
+	
 	void SetStatusBar(std::string strMessage);
 	void ClearStatusBar();
 
-    void Trim(std::string* str);
-	
-	BOOL GenerateDestFileNameFromSource(const std::string& crstrSourceFileName, std::string* pstrDestFileName);
-	BOOL AddFileOptions(FileOptions& rSourceOptions, FileOptions& rDestOptions);
-	
+private:	
 	/** Main widget */
 	QWidget* m_pMainWidget;
 	
-	QFont* m_pFont;
+	/** Stacked widget */
+	QStackedWidget* m_pStackedWidget;
 	
-	/** QFontMetrics instance */
-	QFontMetrics* m_pFontMetrics;
+	/** Combo box for pages switching */
+	QComboBox* m_pBoxPages;
 	
-	/** Source file label */
-	QLabel* m_pSourceFileLabel;
+	/** Tab widget for pages switching */
+	QTabWidget* m_pTabPages;
 	
-	/** Destination file label */
-	QLabel* m_pDestFileLabel;
+	/** Convert page */
+	CWdgConvertPage* m_pWdgConvertPage;
 	
-	/** Source file name Line Edit */
-	QLineEdit* m_pSourceFileEdit;
-	
-	/** Destination file name Line Edit */
-	CLineEdit* m_pDestFileEdit;
-	
-	/** Browse source file button */
-	QPushButton* m_pBrowseSourceFileButton;
-	
-	/** Browse destination file button */
-	QPushButton* m_pBrowseDestFileButton;
-	
-	/** Convert button */
-	QPushButton* m_pConvertButton;
-
-    /** Ignore TXT header check box */
-    QCheckBox* m_pCheckIgnoreTXTheader;
-
-    /** Add CSV header check box */
-    QCheckBox* m_pCheckAddCSVheader;
-		
-	/** Warning box */
-	CDlgWarning* m_pWarningBox;
-	
-private slots:
-	void ConvertButtonClicked();
-	void BrowseSourceFileClicked();
-	void BrowseDestFileClicked();
-	
-	void SourceFileEditor_handle(const QString&);
-	void DestFileEditor_handle(bool bHasFocus);
+	/** Group delay page */
+	CWdgGroupDelayPage* m_pWdgGroupDelayPage;
 };
 
 } /* End of namespace Visualization */

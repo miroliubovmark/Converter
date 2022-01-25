@@ -43,6 +43,9 @@ public:
 	CConverter();
 	~CConverter();
 	
+	static void Trim(std::string* str);
+	static BOOL GenerateDestFileNameFromSource(const std::string& crstrSourceFileName, std::string* pstrDestFileName);
+	
 	ErrorCode TXTtoCSV(const std::string& crstrSourceFileName, const std::string& crstrDestFileName, 
                  const FileOptions& crSourecOpt, const FileOptions& crDestcOpt, BOOL bCalculateTau, U32 u32PointCount = 10000);
 

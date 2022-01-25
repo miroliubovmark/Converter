@@ -56,7 +56,7 @@ public:
     {
 
         ostream << "X\tY\n";
-        for (int i = 0; i < zSize; i++) {
+        for (size_t i = 0; i < zSize; i++) {
             ostream << pXValues[i] <<  "\t" <<  pYValues[i] << '\n';
         }
     }

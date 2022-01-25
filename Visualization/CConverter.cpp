@@ -8,6 +8,105 @@ namespace Visualization
  *******************************************************************************
  *
  *   \par Name:
+ *              void Trim(std::string* str) \n
+ *
+ *   \par Purpose:
+ * 				Trim \n
+ *
+ *   \par Inputs:
+ * 				None \n
+ *
+ *   \par Outputs:
+ * 				None \n
+ *
+ *   \par Returns:
+ * 				None \n
+ *
+ *   \par Notes:
+ * 				None \n
+ *
+ *******************************************************************************
+ */
+void CConverter::Trim(std::string* str)
+{
+    BOOL bFlag = FALSE;
+
+    while(str->size() > 0)
+    {
+        bFlag = FALSE;
+        size_t zSize = str->size();
+
+        if(str->at(0) == ' ' || str->at(0) == '\t' || str->at(0) == '\n')
+        {
+            str->erase(0, 1);
+            bFlag = TRUE;
+        }
+
+        zSize = str->size();
+
+        if(str->at(zSize - 1) == ' ' || str->at(zSize - 1) == '\t' || str->at(zSize - 1) == '\n')
+        {
+            *str = str->substr(0, zSize - 1);
+            bFlag = TRUE;
+        }
+
+        if(!bFlag)
+        {
+            break;
+        }
+    }
+}
+
+/**
+ *******************************************************************************
+ *
+ *   \par Name:
+ *              BOOL GenerateDestFileNameFromSource(std::string& strSourceFileName, std::string* pstrDestFileName) \n
+ *
+ *   \par Purpose:
+ * 				Generate destination file name from source file name \n
+ *
+ *   \par Inputs:
+ * 				crstrSourceFileName - const reference to source file name \n
+ *				std::string* pstrDestFileName - pointer to destination file name \n
+ *
+ *   \par Outputs:
+ * 				std::string* pstrDestFileName - pointer to destination file name \n
+ *
+ *   \par Returns:
+ * 				TRUE \n
+ *
+ *   \par Notes:
+ * 				None \n
+ *
+ *******************************************************************************
+ */
+BOOL CConverter::GenerateDestFileNameFromSource(const std::string& crstrSourceFileName, std::string* pstrDestFileName)
+{	
+	size_t zPos, zSize;
+	zPos = crstrSourceFileName.find(".txt");
+	
+	if(zPos != std::string::npos)
+	{
+		zSize = zPos;
+	}
+	else
+	{
+		zSize = crstrSourceFileName.size();
+	}
+	
+	pstrDestFileName->clear();
+	pstrDestFileName->append(crstrSourceFileName.c_str(), zSize);
+	
+	pstrDestFileName->append(".csv");
+	
+	return TRUE;
+}
+
+/**
+ *******************************************************************************
+ *
+ *   \par Name:
  *              CConverter::CConverter() \n
  *
  *   \par Purpose:
@@ -367,7 +466,6 @@ ErrorCode CConverter::InterpolateData(U32 u32PointCount)
 
 ErrorCode CConverter::DifferenciateData(U32 u32Order)
 {
-
     CMathUtils::ComputeDerivatives(m_pDataSeries, m_pDataSeries, DM_Polynomial, u32Order);
 
     return EC_OK;
@@ -376,10 +474,7 @@ ErrorCode CConverter::DifferenciateData(U32 u32Order)
 ErrorCode CConverter::TXTtoCSV(const std::string& crstrSourceFileName, const std::string& crstrDestFileName,
              const FileOptions& crSourecOpt, const FileOptions& crDestcOpt, BOOL bCalculateTau, U32 u32PointCount)
 {
-
 	Clear();
-
-
 	
     ErrorCode Code = Read(crstrSourceFileName, crSourecOpt, bCalculateTau);
 	
@@ -387,7 +482,6 @@ ErrorCode CConverter::TXTtoCSV(const std::string& crstrSourceFileName, const std
 	{
 		return Code;
 	}
-
 
     m_pDataSeries->print(std::cout);
 	

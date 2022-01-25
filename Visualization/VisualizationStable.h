@@ -28,6 +28,9 @@ namespace Visualization
 {
 	class CDlgWarning;
 	class CLineEdit;
+	class CWdgFileNamesReader;
+	class CWdgConvertPage;
+	class CWdgGroupDelayPage;
 	class CMainWindow;
 	class CConverter;
 	
@@ -39,6 +42,9 @@ namespace Visualization
 #include "UBaseTypes.h"
 #include "CDlgWarning.h"
 #include "CLineEdit.h"
+#include "CWdgFileNamesReader.h"
+#include "CWdgConvertPage.h"
+#include "CWdgGroupDelayPage.h"
 #include "CMainWindow.h"
 #include "CMathUtils.h"
 #include "CConverter.h"

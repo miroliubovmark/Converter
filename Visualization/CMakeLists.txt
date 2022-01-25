@@ -23,6 +23,9 @@ set(HEADER_FILES
 
 	CDlgWarning.h
 	CLineEdit.h
+	CWdgFileNamesReader.h
+	CWdgConvertPage.h
+	CWdgGroupDelayPage.h
 	CMainWindow.h
 	CConverter.h
 )
@@ -30,6 +33,9 @@ set(HEADER_FILES
 set(SOURCE_FILES
 	CDlgWarning.cpp
 	CLineEdit.cpp
+	CWdgFileNamesReader.cpp
+	CWdgConvertPage.cpp
+	CWdgGroupDelayPage.cpp
 	CMainWindow.cpp
 	CConverter.cpp
 )
