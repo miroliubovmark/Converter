@@ -29,7 +29,6 @@ namespace Visualization
 CWdgGroupDelayPage::CWdgGroupDelayPage()
 	: QWidget(NULL)
 {
-	
 	m_pWdgFileNamesReader = new CWdgFileNamesReader(2);
 	
 	m_pCalculateButton = new QPushButton("Calculate");
