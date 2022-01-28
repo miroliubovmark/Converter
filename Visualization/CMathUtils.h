@@ -51,12 +51,12 @@ public:
         pXValues(std::make_unique<TX[]>(zSize)),
         pYValues(std::make_unique<TY[]>(zSize)),
         zSize(zSize){};
-	
+
     inline void print(std::ostream& ostream)
     {
 
         ostream << "X\tY\n";
-        for (size_t i = 0; i < zSize; i++) {
+        for (int i = 0; i < zSize; i++) {
             ostream << pXValues[i] <<  "\t" <<  pYValues[i] << '\n';
         }
     }
@@ -109,11 +109,15 @@ public:
     template<class T> static void FourierDirect(const CDataSeries<T, T>* pInput, CDataSeries<T, std::complex<T>>* pOutput);
     template<class T> static void FourierReverse(const CDataSeries<T, std::complex<T>>* pInput, CDataSeries<T, T>* pOutput);
 
-    template<class T> static void PolynomialDirect(const CDataSeries<T, T>* pInput, CDataSeries<U16, T>* pOutput);
     template<class T> static void PolynomialReverse(const CDataSeries<U16, T>* pInput, CDataSeries<T, T>* pOutput);
+    template<class T> static void PolynomialDirect(const CDataSeries<T, T>* pInput, CDataSeries<U16, T>* pOutput, U16 u16Limit);
 
     template<class T> static void ComputeDerivatives(const CDataSeries<T, T>* pInput, CDataSeries<T, T>* pOutput, DifferentiationMethod eMethod, U16 u16Order);
     template<class T> static void Interpolate(const CDataSeries<T, T>* pInput, CDataSeries<T, T>* pOutput, InterpolationMethod eMethod, U16 u16Order);
+
+//private:
+//    template<class T> static void BlockPolynomial(const CDataSeries<T, T>* pInput, T** pOutput, const size_t* zBlockPos, U16 u16BlockCount, U16 u16Order);
+//    template<class T> static void BlockPolyMerge(CDataSeries<T, T>* pOutput, const T** pInput, const size_t* zBlockPos, U16 u16BlockCount, U16 u16Order);
 };
 
 
@@ -125,17 +129,35 @@ public:
 
 
 template<class TX, class TY> inline TX CDataSeries<TX, TY>::tGetX(size_t zIndex) const {
-    return pXValues[zIndex];
+    if(zIndex >= 0 && zIndex < zSize) {
+        return pXValues[zIndex];
+    } else {
+        std::cout << "incorrect index " << zIndex << " of " << zSize << std::endl;
+        return 0;
+    }
 }
 
 template<class TX, class TY> inline TY CDataSeries<TX, TY>::tGetY(size_t zIndex) const {
-    return pYValues[zIndex];
+    if(zIndex >= 0 && zIndex < zSize) {
+        return pYValues[zIndex];
+    } else {
+        std::cout << "incorrect index " << zIndex << " of " << zSize << std::endl;
+        return 0;
+    }
 }
 template<class TX, class TY> inline void CDataSeries<TX, TY>::SetX(size_t zIndex, TX tVal){
-    pXValues[zIndex] = tVal;
+    if(zIndex >= 0 && zIndex < zSize) {
+        pXValues[zIndex] = tVal;
+    } else {
+        std::cout << "incorrect index " << zIndex << " of " << zSize << std::endl;
+    }
 }
 template<class TX, class TY> inline void CDataSeries<TX, TY>::SetY(size_t zIndex, TY tVal){
-    pYValues[zIndex] = tVal;
+    if(zIndex >= 0 && zIndex < zSize) {
+        pYValues[zIndex] = tVal;
+    } else {
+        std::cout << "incorrect index " << zIndex << " of " << zSize << std::endl;
+    }
 }
 template<class TX, class TY> inline size_t CDataSeries<TX, TY>::zGetSize() const{
     return zSize;
@@ -193,15 +215,13 @@ template<class T> inline void CMathUtils::FourierReverse(const CDataSeries<T, st
     }
 }
 
-template<class T> inline void CMathUtils::PolynomialDirect(const CDataSeries<T, T>* pInput, CDataSeries<U16, T>* pOutput) {
-    pInput->EnsureAccendingX();
+template<class T> inline void CMathUtils::PolynomialDirect(const CDataSeries<T, T>* pInput, CDataSeries<U16, T>* pOutput, U16 u16Limit) {
 
     size_t zOutSize = pOutput->zGetSize();
-    size_t zInSize = pInput->zGetSize();
 
     CLinearSystem<T> oSys(zOutSize);
 
-    T tInputMax = pInput->tGetX(pInput->zGetSize()-1);
+    T tInputMax = pInput->tGetX(u16Limit - 1);
     T tInputMin = pInput->tGetX(0);
 
 
@@ -214,23 +234,21 @@ template<class T> inline void CMathUtils::PolynomialDirect(const CDataSeries<T, 
 
     for(U16 zI = 0; zI < zOutSize; zI++) {
         T tSum = 0;
-        for(size_t zJ = 0; zJ < zInSize - 1; zJ++) {
+        for(size_t zJ = 0; zJ < u16Limit - 1; zJ++) {
             T x0 = pInput->tGetX(zJ); T x1 = pInput->tGetX(zJ+1);
             T y0 = pInput->tGetY(zJ); T y1 = pInput->tGetY(zJ+1);
 
-            tSum +=  (y1 * std::pow(x1,zI) + y0 * std::pow(x0,zI)) * (x1 - x0) / 2;
+            //tSum +=  (y1 * std::pow(x1,zI) + y0 * std::pow(x0,zI)) * (x1 - x0) / 2;
+            tSum += (y0 - (y1-y0)/(x1-x0)*x0) * (std::pow(x1,zI+1) - std::pow(x0,zI+1)) / (zI+1) +
+                    (y1-y0)/(x1-x0) *           (std::pow(x1,zI+2) - std::pow(x0,zI+2)) / (zI+2);
         }
 
         oSys.SetRight(zI, tSum);
     }
 
-    oSys.print(std::cout);
 
     std::unique_ptr<T[]> pResult = std::make_unique<T[]>(zOutSize);
     oSys.SolveGauss(pResult.get());
-
-
-    oSys.print(std::cout);
 
     for(U16 zI = 0; zI < zOutSize; zI++){
         pOutput->SetX(zI, zI);
@@ -270,13 +288,117 @@ template<class T> inline void CMathUtils::ComputeDerivatives(const CDataSeries<T
     } break;
     case DM_Polynomial: {
 
-        CDataSeries<U16, T> oTemp(u16Order);
-        PolynomialDirect(pInput, &oTemp);
-        for(int u16I = 0; u16I < u16Order - 1; u16I++) {
-            oTemp.SetY(u16I, oTemp.tGetY(u16I + 1) * oTemp.tGetX(u16I + 1));
+        int bufferSize = 15;
+
+        size_t sz_i = pInput->zGetSize();
+
+        CDataSeries<U16, T> oPoly1(u16Order);
+        CDataSeries<U16, T> oPoly2(u16Order);
+        CDataSeries<T, T> oTempInput(3*bufferSize+3);
+        CDataSeries<T, T> oTempOutput(sz_i);
+        CDataSeries<T, T> oTempOutput1(bufferSize+1);
+        CDataSeries<T, T> oTempOutput2(bufferSize+1);
+
+
+        T TMaxI2=1, TMaxI1=0;
+        T TMinI2=1, TMinI1=0;
+
+        int bufferCount = (int)(sz_i/bufferSize);
+
+
+        for(int j = 0; j < bufferCount+1; j++) {
+            int p1 = std::max((j-1)*bufferSize, 0);
+            int p2 = std::min((j+2)*bufferSize, (int)sz_i);
+
+            if(j != bufferCount) {
+                TMaxI2 = pInput->tGetX(p2-1);
+                TMinI2 = pInput->tGetX(p1);
+
+                for(int i = p1; i < p2; i++) {
+                    oTempInput.SetX(i-p1, (pInput->tGetX(i) - TMinI2) / (TMaxI2 - TMinI2));
+                    oTempInput.SetY(i-p1, pInput->tGetY(i));
+                }
+                PolynomialDirect(&oTempInput, &oPoly2, p2-p1);
+                for(int u16I = 0; u16I < u16Order - 1; u16I++) {
+                    oPoly2.SetY(u16I, oPoly2.tGetY(u16I + 1) * oPoly2.tGetX(u16I + 1));
+                }
+                oPoly2.SetY(u16Order - 1, 0);
+            }
+
+            int left_c = std::max(0, (2*j-1)*bufferSize/2);
+            int right_c = std::min((int)sz_i, (2*j+1)*bufferSize/2);
+
+            for(int i = left_c; i < right_c; i++) {
+                oTempOutput1.SetX(i-left_c, (pOutput->tGetX(i) - TMinI1) / (TMaxI1 - TMinI1));
+                oTempOutput2.SetX(i-left_c, (pOutput->tGetX(i) - TMinI2) / (TMaxI2 - TMinI2));
+            }
+
+
+            PolynomialReverse(&oPoly2, &oTempOutput2);
+            if(j > 0) {
+                PolynomialReverse(&oPoly1, &oTempOutput1);
+            }
+
+
+            for(int i = left_c; i < right_c; i++) {
+                if(j == 0) {
+                    oTempOutput.SetY(i, oTempOutput2.tGetY(i - left_c) / (TMaxI2 - TMinI2));
+                } else if(j == bufferCount) {
+                    oTempOutput.SetY(i, oTempOutput1.tGetY(i - left_c) / (TMaxI1 - TMinI1));
+                } else {
+                    T coord = (1.*i - left_c) / (right_c - 1 - left_c);
+                    T weight1 = (1 + std::cos(coord * PI)) / 2;
+                    T weight2 = (1 - std::cos(coord * PI)) / 2;
+//                    T weight1 = coord > 0.5 ? 0 : 1;
+//                    T weight2 = 1 - weight1;
+
+                    oTempOutput.SetY(i, oTempOutput1.tGetY(i - left_c) * weight1 / (TMaxI1 - TMinI1)   +
+                                        oTempOutput2.tGetY(i - left_c) * weight2 / (TMaxI2 - TMinI2));
+                }
+            }
+
+            for(int i = 0; i < u16Order; i++) {
+                oPoly1.SetX(i, oPoly2.tGetX(i));
+                oPoly1.SetY(i, oPoly2.tGetY(i));
+            }
+            TMaxI1=TMaxI2; TMinI1=TMinI2;
         }
-        oTemp.SetY(u16Order - 1, 0);
-        PolynomialReverse(&oTemp, pOutput);
+
+        for(int i = 0; i < sz_i; i++) {
+            pOutput->SetY(i, -oTempOutput.tGetY(i));
+        }
+
+//        size_t sz_i = pInput->zGetSize(); / (TMaxI1 - TMinI1)
+//        size_t sz_o = pInput->zGetSize(); / (TMaxI2 - TMinI2)
+
+//        CDataSeries<U16, T> oTemp(u16Order);
+//        CDataSeries<T, T> oTempInput(sz_i);
+//        CDataSeries<T, T> oTempOutput(sz_o);
+
+//        T TMaxI = pInput->tGetX(sz_i-1);
+//        T TMinI = pInput->tGetX(0);
+//        T TMaxO = pOutput->tGetX(sz_o-1);
+//        T TMinO = pOutput->tGetX(0);
+
+//        for(int i = 0; i < sz_i; i++) {
+//            oTempInput.SetX(i, (pInput->tGetX(i) - TMinI) / (TMaxI - TMinI));
+//            oTempInput.SetY(i, pInput->tGetY(i));
+//        }
+//        for(int i = 0; i < sz_o; i++) {
+//            oTempOutput.SetX(i, (pOutput->tGetX(i) - TMinO) / (TMaxO - TMinO));
+//        }
+
+//        PolynomialDirect(&oTempInput, &oTemp);
+//        for(int u16I = 0; u16I < u16Order - 1; u16I++) {
+//            oTemp.SetY(u16I, oTemp.tGetY(u16I + 1) * oTemp.tGetX(u16I + 1));
+//        }
+//        oTemp.SetY(u16Order - 1, 0);
+//        PolynomialReverse(&oTemp, &oTempOutput);
+
+//        for(int i = 0; i < sz_o; i++) {
+//            pOutput->SetY(i, oTempOutput.tGetY(i));
+//        }
+
 
     } break;
     }
@@ -293,13 +415,14 @@ template<class T> inline void CMathUtils::Interpolate(const CDataSeries<T, T>* p
     case IM_Polynomial: {
 
         CDataSeries<U16, T> oTemp(u16Order);
-        PolynomialDirect(pInput, &oTemp);
+        PolynomialDirect(pInput, &oTemp, pInput->zGetSize());
         PolynomialReverse(&oTemp, pOutput);
 
     } break;
     case IM_Linear: {
         pInput->EnsureAccendingX();
         pOutput->EnsureAccendingX();
+
 
         size_t zOutSize = pOutput->zGetSize();
         size_t zInSize = pInput->zGetSize();
@@ -317,14 +440,57 @@ template<class T> inline void CMathUtils::Interpolate(const CDataSeries<T, T>* p
                 tXMin = pInput->tGetX(zInIndex);
                 tXMax = pInput->tGetX(zInIndex+1);
             }
-			T tC1 = (tXVal-tXMin)/(tXMax-tXMin);
-			T tC0 = (tXMax-tXVal)/(tXMax-tXMin);
-			pOutput->SetY(zI, pInput->tGetY(zInIndex) * tC0 + pInput->tGetY(zInIndex+1) * tC1);
+            T tC1 = (tXVal-tXMin)/(tXMax-tXMin);
+            T tC0 = (tXMax-tXVal)/(tXMax-tXMin);
+            pOutput->SetY(zI, pInput->tGetY(zInIndex) * tC0 + pInput->tGetY(zInIndex+1) * tC1);
         }
     } break;
     }
 }
 
+
+
+//template<class T> inline void CMathUtils::BlockPolynomial(const CDataSeries<T, T>* pInput, T** pOutput, const size_t* zBlockPos, U16 u16BlockCount, U16 u16Order) {
+//    pInput->EnsureAccendingX();
+
+//    size_t zInSize = pInput->zGetSize();
+
+//    CLinearSystem<T> oSys(u16Order);
+
+
+//    for(U16 u16BlockI; u16BlockI < u16BlockCount; u16BlockI++) {
+//        size_t zStart = zBlockPos[u16BlockI];
+//        size_t zEnd;
+//        if(u16BlockI == u16BlockCount - 1) {
+//            zEnd = pInput->zGetSize();
+//        } else {
+//            zEnd = zBlockPos[u16BlockI];
+//        }
+//        T tBlStart = pInput->tGetX(zStart);
+//        T tBlLen = pInput->tGetX(zEnd - tBlStart);
+
+//        for(U16 zI = 0; zI < u16Order; zI++){
+//            for(size_t zJ = 0; zJ < u16Order; zJ++) {
+//                U16 pow = zI + zJ + 1;
+//                oSys.Set(zI, zJ, std::pow(tBlLen, pow) / pow );
+//            }
+//        }
+
+//        for(U16 zI = zStart; zI < zEnd; zI++) {
+//            T tSum = 0;
+//            for(size_t zJ = 0; zJ < zInSize - 1; zJ++) {
+//                T x0 = pInput->tGetX(zJ); T x1 = pInput->tGetX(zJ+1);
+//                T y0 = pInput->tGetY(zJ); T y1 = pInput->tGetY(zJ+1);
+
+//                tSum +=  (y1 * std::pow(x1 - tBlStart,zI) +
+//                          y0 * std::pow(x0 - tBlStart,zI)) * (x1 - x0) / 2;
+//            }
+
+//            oSys.SetRight(zI, tSum);
+//        }
+//        oSys.SolveGauss(pOutput[u16BlockI]);
+//    }
+//}
 
 
 
@@ -444,4 +610,3 @@ template<class T> inline T* CLinearSystem<T>::operator[](size_t index)
 
 
 #endif // CMATHUTILS_H
-
