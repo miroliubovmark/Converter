@@ -57,51 +57,6 @@ void CConverter::Trim(std::string* str)
     }
 }
 
-/**
- *******************************************************************************
- *
- *   \par Name:
- *              BOOL GenerateDestFileNameFromSource(std::string& strSourceFileName, std::string* pstrDestFileName) \n
- *
- *   \par Purpose:
- * 				Generate destination file name from source file name \n
- *
- *   \par Inputs:
- * 				crstrSourceFileName - const reference to source file name \n
- *				std::string* pstrDestFileName - pointer to destination file name \n
- *
- *   \par Outputs:
- * 				std::string* pstrDestFileName - pointer to destination file name \n
- *
- *   \par Returns:
- * 				TRUE \n
- *
- *   \par Notes:
- * 				None \n
- *
- *******************************************************************************
- */
-BOOL CConverter::GenerateDestFileNameFromSource(const std::string& crstrSourceFileName, std::string* pstrDestFileName)
-{	
-	size_t zPos, zSize;
-	zPos = crstrSourceFileName.find(".txt");
-	
-	if(zPos != std::string::npos)
-	{
-		zSize = zPos;
-	}
-	else
-	{
-		zSize = crstrSourceFileName.size();
-	}
-	
-	pstrDestFileName->clear();
-	pstrDestFileName->append(crstrSourceFileName.c_str(), zSize);
-	
-	pstrDestFileName->append(".csv");
-	
-	return TRUE;
-}
 
 /**
  *******************************************************************************
@@ -493,6 +448,28 @@ ErrorCode CConverter::TXTtoCSV(const std::string& crstrSourceFileName, const std
 
 	
     Code = Write(crstrDestFileName, crDestcOpt);
+	
+	if(Code != EC_OK)
+	{
+		return Code;
+	}
+	
+	return EC_OK;
+}
+
+ErrorCode CConverter::CSVtoTXT(const std::string& crstrSourceFileName, const std::string& crstrDestFileName,
+             const FileOptions& crSourecOpt, const FileOptions& crDestcOpt, BOOL bCalculateTau, U32 u32PointCount)
+{
+	Clear();
+	
+	ErrorCode Code = Read(crstrSourceFileName, crSourecOpt, bCalculateTau);
+	
+	if(Code != EC_OK)
+	{
+		return Code;
+	}
+	
+	Code = Write(crstrDestFileName, crDestcOpt);
 	
 	if(Code != EC_OK)
 	{

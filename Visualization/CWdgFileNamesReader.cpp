@@ -26,8 +26,9 @@ namespace Visualization
  *
  *******************************************************************************
  */
-CWdgFileNamesReader::CWdgFileNamesReader()
+CWdgFileNamesReader::CWdgFileNamesReader(S8 s8Parent)
 	: QWidget(NULL)
+	, m_S8Parent(s8Parent)
 {	
 	m_pFont = new QFont;
 	m_pFontMetrics = new QFontMetrics(*m_pFont);
@@ -97,63 +98,81 @@ void CWdgFileNamesReader::Init()
 	show();
 }
 
-QString CWdgFileNamesReader::GetSourceFileText()
+InlineFileType CWdgFileNamesReader::GetExtension(const std::string& crstrText)
 {
-	return m_pSourceFileEdit->text();
+	std::string strText(crstrText);
+	CConverter::Trim(&strText);
+	
+	size_t zSize = strText.size();
+	
+	if(zSize < 4)
+	{
+		return IFT_UNKNOWN;
+	}
+	
+	std::string strExtension(strText.substr(zSize - 4, 4));
+	
+	if(strExtension == ".csv")
+	{
+		return IFT_CSV;
+	}
+	else if(strExtension == ".txt")
+	{
+		return IFT_TXT;
+	}
+	else
+	{
+		return IFT_UNKNOWN;
+	}
 }
 
-QString CWdgFileNamesReader::GetDestFileText()
+BOOL CWdgFileNamesReader::GetSourceFileName(std::string* pstrSourceFileName, InlineFileType *pFT)
 {
-	return m_pDestFileEdit->text();
-}
+	pstrSourceFileName->clear();
+	
+	std::string strRawText = m_pSourceFileEdit->text().toStdString();
+	CConverter::Trim(&strRawText);
+	
+	/* Set file name */
+	if(strRawText.size() == 0)
+	{
+		return FALSE;
+	}
+	
+	*pstrSourceFileName = strRawText;
 
-QString CWdgFileNamesReader::GetSourcePlaceholder()
-{
-	return m_pSourceFileEdit->placeholderText();
-}
-
-QString CWdgFileNamesReader::GetDestPlaceholder()
-{
-	return m_pDestFileEdit->placeholderText();
-}
-
-BOOL CWdgFileNamesReader::SetSourceText(const std::string& crstrText)
-{
-	m_pSourceFileEdit->setText(crstrText.c_str());
+	/* Get extension */
+	*pFT = GetExtension(strRawText);
 	
 	return TRUE;
 }
 
-BOOL CWdgFileNamesReader::SetSourceText(const QString& crqstrText)
+BOOL CWdgFileNamesReader::GetDestFileName(std::string* pstrDestFileName, InlineFileType *pFT)
 {
-	m_pSourceFileEdit->setText(crqstrText);
+	pstrDestFileName->clear();
+	
+	std::string strRawText = m_pDestFileEdit->text().toStdString();
+	CConverter::Trim(&strRawText);
+	
+	/* Text is empty, consider placeholder */
+	if(strRawText.size() == 0)
+	{
+		strRawText = m_pDestFileEdit->placeholderText().toStdString();
+		CConverter::Trim(&strRawText);
+	}
+	
+	if(strRawText.size() == 0)
+	{
+		return FALSE;
+	}
+	
+	*pstrDestFileName = strRawText;
+
+	/* Get extension */
+	*pFT = GetExtension(strRawText);
+	
 	return TRUE;
 }
-
-BOOL CWdgFileNamesReader::SetDestText(const std::string& crstrText)
-{
-	m_pDestFileEdit->setText(crstrText.c_str());
-	return TRUE;
-}
-
-BOOL CWdgFileNamesReader::SetDestText(const QString& crqstrText)
-{
-	m_pDestFileEdit->setText(crqstrText);
-	return TRUE;
-}
-
-BOOL CWdgFileNamesReader::SetSourcePlaceholder(const std::string& crstrPlaceholder)
-{
-	m_pSourceFileEdit->setPlaceholderText(crstrPlaceholder.c_str());
-	return TRUE;
-}
-
-BOOL CWdgFileNamesReader::SetDestPlaceholder(const std::string& crstrPlaceholder)
-{
-	m_pDestFileEdit->setPlaceholderText(crstrPlaceholder.c_str());
-	return TRUE;
-}
-
 
 /**
  *******************************************************************************
@@ -223,6 +242,86 @@ void CWdgFileNamesReader::BrowseDestFileClicked()
 	}
 }
 
+/**
+ *******************************************************************************
+ *
+ *   \par Name:
+ *              BOOL GenerateDestFileNameFromSource(std::string& strSourceFileName, std::string* pstrDestFileName) \n
+ *
+ *   \par Purpose:
+ * 				Generate destination file name from source file name \n
+ *
+ *   \par Inputs:
+ * 				crstrSourceFileName - const reference to source file name \n
+ *				std::string* pstrDestFileName - pointer to destination file name \n
+ *
+ *   \par Outputs:
+ * 				std::string* pstrDestFileName - pointer to destination file name \n
+ *
+ *   \par Returns:
+ * 				TRUE \n
+ *
+ *   \par Notes:
+ * 				None \n
+ *
+ *******************************************************************************
+ */
+BOOL CWdgFileNamesReader::GenerateDestFileNameFromSource(const std::string& crstrSourceFileName, std::string* pstrDestFileName)
+{
+	size_t zSize;
+	InlineFileType Source_FT = GetExtension(crstrSourceFileName);
+	
+	zSize = crstrSourceFileName.size();
+	
+	if(Source_FT == IFT_UNKNOWN)
+	{
+		pstrDestFileName->clear();
+		pstrDestFileName->append(crstrSourceFileName.c_str(), zSize);
+		
+		if(m_S8Parent == 1)
+		{
+			pstrDestFileName->append(".csv");
+		}	
+	}
+	
+	else if(Source_FT == IFT_TXT)
+	{
+		zSize -= 4;
+		
+		pstrDestFileName->clear();
+		pstrDestFileName->append(crstrSourceFileName.c_str(), zSize);
+		
+		if(m_S8Parent == 1)
+		{
+			pstrDestFileName->append(".csv");
+		}
+		
+		else if(m_S8Parent == 2)
+		{
+			pstrDestFileName->append("(1).txt");
+		}
+	}
+	
+	else if(Source_FT == IFT_CSV)
+	{
+		zSize -= 4;
+		
+		pstrDestFileName->clear();
+		pstrDestFileName->append(crstrSourceFileName.c_str(), zSize);
+		
+		if(m_S8Parent == 1)
+		{
+			pstrDestFileName->append(".txt");
+		}
+		
+		else if(m_S8Parent == 2)
+		{
+			pstrDestFileName->append("(1).csv");
+		}
+	}
+	
+	return TRUE;
+}
 
 
 /**
@@ -254,7 +353,7 @@ void CWdgFileNamesReader::SourceFileEditor_handle(const QString&)
 	if(m_pDestFileEdit->text().size() == 0)
 	{
 		std::string strDestFileName;
-		CConverter::GenerateDestFileNameFromSource(m_pSourceFileEdit->text().toStdString(), &strDestFileName);
+		GenerateDestFileNameFromSource(m_pSourceFileEdit->text().toStdString(), &strDestFileName);
 		
 		m_pDestFileEdit->setPlaceholderText(QString(strDestFileName.c_str()));
 	}

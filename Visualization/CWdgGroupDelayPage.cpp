@@ -30,7 +30,7 @@ CWdgGroupDelayPage::CWdgGroupDelayPage()
 	: QWidget(NULL)
 {
 	
-	m_pWdgFileNamesReader = new CWdgFileNamesReader;
+	m_pWdgFileNamesReader = new CWdgFileNamesReader(2);
 	
 	m_pCalculateButton = new QPushButton("Calculate");
 	m_pCalculateButton->setMaximumSize(m_pCalculateButton->sizeHint());
@@ -87,56 +87,65 @@ void CWdgGroupDelayPage::Init()
 
 void CWdgGroupDelayPage::CalculateButtonClicked()
 {
-	/** Name of source file */
-	std::string strSourceFileName(m_pWdgFileNamesReader->GetSourceFileText().toStdString());
+	printf("void CWdgGroupDelayPage::CalculateButtonClicked() --- TODO\n");
 	
-	/** Name of destination file */
-	std::string strDestFileName;
+//	/** Name of source file */
+//	std::string strSourceFileName(m_pWdgFileNamesReader->GetSourceFileText().toStdString());
 	
-	m_pMainWindow->ClearStatusBar();
+//	/** Name of destination file */
+//	std::string strDestFileName;
 	
-	if(strSourceFileName.empty())
-	{
-		m_pMainWindow->SetStatusBar("Warning: SOURCE file name is empty");
+//	m_pMainWindow->ClearStatusBar();
+	
+//	if(strSourceFileName.empty())
+//	{
+//		m_pMainWindow->SetStatusBar("Warning: SOURCE file name is empty");
 		
-		m_pWarningBox->SetMessage("SOURCE file name is empty", WarningStatus::Warning);
-		m_pWarningBox->Init();
+//		m_pWarningBox->SetMessage("SOURCE file name is empty", WarningStatus::Warning);
+//		m_pWarningBox->Init();
 		
-		return;
-	}
+//		return;
+//	}
 	
-	if((m_pWdgFileNamesReader->GetDestFileText().size() == 0) && (m_pWdgFileNamesReader->GetDestPlaceholder().size() == 0))
-	{
-		m_pMainWindow->SetStatusBar("Warning: DESTINATION file name is empty");
+//	if((m_pWdgFileNamesReader->GetDestFileText().size() == 0) && (m_pWdgFileNamesReader->GetDestPlaceholder().size() == 0))
+//	{
+//		m_pMainWindow->SetStatusBar("Warning: DESTINATION file name is empty");
 		
-		m_pWarningBox->SetMessage("DESTINATION file name is empty", WarningStatus::Warning);
-		m_pWarningBox->Init();
+//		m_pWarningBox->SetMessage("DESTINATION file name is empty", WarningStatus::Warning);
+//		m_pWarningBox->Init();
 		
-		return;
-	}
+//		return;
+//	}
 	
-	if(m_pWdgFileNamesReader->GetDestFileText().size() != 0)
-	{
-		strDestFileName = m_pWdgFileNamesReader->GetDestFileText().toStdString();
-	}
-	else
-	{
-		strDestFileName = m_pWdgFileNamesReader->GetDestPlaceholder().toStdString();
-		m_pWdgFileNamesReader->SetDestText(strDestFileName);
-		m_pWdgFileNamesReader->SetDestPlaceholder("");
-	}
+//	if(m_pWdgFileNamesReader->GetDestFileText().size() != 0)
+//	{
+//		strDestFileName = m_pWdgFileNamesReader->GetDestFileText().toStdString();
+//	}
+//	else
+//	{
+//		strDestFileName = m_pWdgFileNamesReader->GetDestPlaceholder().toStdString();
+//		m_pWdgFileNamesReader->SetDestText(strDestFileName);
+//		m_pWdgFileNamesReader->SetDestPlaceholder("");
+//	}
 
-    CConverter::Trim(&strSourceFileName);
-    CConverter::Trim(&strDestFileName);
+//    CConverter::Trim(&strSourceFileName);
+//    CConverter::Trim(&strDestFileName);
 	
-	CConverter Converter;
+//	CConverter Converter;
 	
-	/* Here should be code for calculating group delay */
+//	FileOptions FO;
 	
-	/* strSourceFileName - name of source file
-	 * strDestFileName - name of destination file
-	 */
+//	FO.HeaderOpt = TRUE;
+//	FO.s8Delimeter = ',';
+//	FO.FType
 	
+//	/* Here should be code for calculating group delay */
+	
+//	/* strSourceFileName - name of source file
+//	 * strDestFileName - name of destination file
+//	 */
+	
+//	Converter.Read(strSourceFileName)
 	
 }
 

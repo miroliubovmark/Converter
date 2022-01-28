@@ -60,5 +60,12 @@ typedef struct
     F64 f64Im;
 } C64;
 
+enum InlineFileType
+{
+	IFT_UNKNOWN = 0,
+	IFT_CSV,
+	IFT_TXT
+};
+
 } /* End of namespace VISUALIZATION */
 #endif // UBaseTypes_H

@@ -18,7 +18,7 @@ public:
 	void Connect(CMainWindow* pMainWindow);
 	
 private:	
-	BOOL AddFileOptions(FileOptions& rSourceOptions, FileOptions& rDestOptions);
+	BOOL AddFileOptions(FileOptions& rSourceOptions, FileOptions& rDestOptions, InlineFileType Source_FT, InlineFileType Dest_FT);
 	
 	/** Pointer to Main Window instance */
 	CMainWindow* m_pMainWindow;

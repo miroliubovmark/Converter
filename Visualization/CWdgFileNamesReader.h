@@ -3,6 +3,8 @@
 
 #include "VisualizationStable.h"
 
+
+
 namespace Visualization
 {
 
@@ -11,27 +13,30 @@ class CWdgFileNamesReader : public QWidget
 	Q_OBJECT
 
 public:
-	CWdgFileNamesReader();
+	CWdgFileNamesReader(S8 s8Parent = 0);
 	~CWdgFileNamesReader();
 	
 	void Init();
 	
-	QString GetSourceFileText();
-	QString GetDestFileText();
-	QString GetSourcePlaceholder();
-	QString GetDestPlaceholder();
+	BOOL GetSourceFileName(std::string* pstrSourceFileName, InlineFileType* pFT);
+	BOOL GetDestFileName(std::string* pstrDestFileName, InlineFileType *pFT);
 	
-	BOOL SetSourceText(const std::string &crstrText);
-	BOOL SetSourceText(const QString& crqstrText);
-	BOOL SetDestText(const std::string &crstrText);
-	BOOL SetDestText(const QString& crqstrText);
-	BOOL SetSourcePlaceholder(const std::string &crstrPlaceholder);
-	BOOL SetDestPlaceholder(const std::string &crstrPlaceholder);
+	InlineFileType GetExtension(const std::string& crstrText);
 	
-private:	
+private:
+	BOOL GenerateDestFileNameFromSource(const std::string& crstrSourceFileName, std::string* pstrDestFileName);
+	
+	/** Parent widget:
+	 * 0 - Unknown
+	 * 1 - ConvertPage
+	 * 2 - GroupDelay
+	 */
+	S8 m_S8Parent = 0;
+	
 	/** Pointer to Main Window instance */
 	CMainWindow* m_pMainWindow;
 	
+	/** Pointer to QFont instance */
 	QFont* m_pFont;
 	
 	/** QFontMetrics instance */
@@ -54,6 +59,10 @@ private:
 	
 	/** Browse destination file button */
 	QPushButton* m_pBrowseDestFileButton;
+	
+	InlineFileType IFT_Source;
+	
+	InlineFileType IFT_Dest;
 	
 private slots:
 	void BrowseSourceFileClicked();

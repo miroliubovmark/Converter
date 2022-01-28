@@ -36,11 +36,11 @@ CWdgConvertPage::CWdgConvertPage()
 	m_pConvertButton->setMaximumSize(m_pConvertButton->sizeHint());
 	connect(m_pConvertButton, SIGNAL(clicked()), this, SLOT(ConvertButtonClicked()));
 	
-	m_pWdgFileNamesReader = new CWdgFileNamesReader;
+	m_pWdgFileNamesReader = new CWdgFileNamesReader(1);
 
     /* Check boxes */
-    m_pCheckIgnoreTXTheader = new QCheckBox("Ignore TXT header");
-    m_pCheckAddCSVheader = new QCheckBox("Add CSV header");
+    m_pCheckIgnoreTXTheader = new QCheckBox("Ignore SOURCE header");
+    m_pCheckAddCSVheader = new QCheckBox("Add DESTINATION header");
 
     m_pCheckIgnoreTXTheader->setCheckState(Qt::Checked);
     m_pCheckAddCSVheader->setCheckState(Qt::Checked);
@@ -51,7 +51,6 @@ CWdgConvertPage::CWdgConvertPage()
     pCheckBoxLayout->addWidget(m_pCheckAddCSVheader);
 	
 	QLayout* pMainLayout = new QVBoxLayout;
-	//pMainLayout->addItem(pGridLayout);
 	pMainLayout->addWidget(m_pWdgFileNamesReader);
 	pMainLayout->setSpacing(20);
     pMainLayout->addItem(pCheckBoxLayout);
@@ -99,7 +98,7 @@ void CWdgConvertPage::Init()
 	show();
 }
 
-BOOL CWdgConvertPage::AddFileOptions(FileOptions& rSourceOptions, FileOptions& rDestOptions)
+BOOL CWdgConvertPage::AddFileOptions(FileOptions& rSourceOptions, FileOptions& rDestOptions, InlineFileType Source_FT, InlineFileType Dest_FT)
 {
 	if(m_pCheckIgnoreTXTheader->checkState() == Qt::Checked)
 	{
@@ -119,11 +118,27 @@ BOOL CWdgConvertPage::AddFileOptions(FileOptions& rSourceOptions, FileOptions& r
 		rDestOptions.HeaderOpt = FALSE;
 	}
 	
-	rSourceOptions.FType = FT_TXT;
-	rSourceOptions.s8Delimeter = '\t';
+	if(Source_FT == IFT_TXT)
+	{
+		rSourceOptions.FType = FT_TXT;
+		rSourceOptions.s8Delimeter = '\t';
+	}
+	else if(Source_FT == IFT_CSV)
+	{
+		rSourceOptions.FType = FT_CSV;
+		rSourceOptions.s8Delimeter = ',';
+	}
 	
-	rDestOptions.FType = FT_CSV;
-	rDestOptions.s8Delimeter = ',';
+	if(Dest_FT == IFT_CSV)
+	{
+		rDestOptions.FType = FT_CSV;
+		rDestOptions.s8Delimeter = ',';
+	}
+	else if(Dest_FT == IFT_TXT)
+	{
+		rDestOptions.FType = FT_TXT;
+		rDestOptions.s8Delimeter = '\t';
+	}
 	
 	return TRUE;
 }
@@ -152,66 +167,66 @@ BOOL CWdgConvertPage::AddFileOptions(FileOptions& rSourceOptions, FileOptions& r
  *******************************************************************************
  */
 void CWdgConvertPage::ConvertButtonClicked()
-{
-	/** Name of source file */
-	std::string strSourceFileName(m_pWdgFileNamesReader->GetSourceFileText().toStdString());
+{	
+	std::string strSourceFileName, strDestFileName;
+	InlineFileType SourceFileType, DestFileType;
 	
-	/** Name of destination file */
-	std::string strDestFileName;
+	m_pWdgFileNamesReader->GetSourceFileName(&strSourceFileName, &SourceFileType);
+	m_pWdgFileNamesReader->GetDestFileName(&strDestFileName, &DestFileType);
 	
-	m_pMainWindow->ClearStatusBar();
-	
-	if(strSourceFileName.empty())
+	/* Unknown source file type */
+	if(SourceFileType == IFT_UNKNOWN)
 	{
-		m_pMainWindow->SetStatusBar("Warning: TXT file name is empty");
-		
-		m_pWarningBox->SetMessage("TXT file name is empty", WarningStatus::Warning);
+		m_pWarningBox->SetMessage("\"" + strSourceFileName + "\" - extension unknown", WarningStatus::Warning);
 		m_pWarningBox->Init();
+		m_pMainWindow->SetStatusBar("\"" + strSourceFileName + "\" - extension unknown");
 		
 		return;
 	}
 	
-	if((m_pWdgFileNamesReader->GetDestFileText().size() == 0) && (m_pWdgFileNamesReader->GetDestPlaceholder().size() == 0))
+	/* Add destination file extension */
+	if(DestFileType == IFT_UNKNOWN)
 	{
-		m_pMainWindow->SetStatusBar("Warning: CSV file name is empty");
+		/* TXT -> CSV */
+		if(SourceFileType == IFT_TXT)
+		{
+			strDestFileName += ".csv";
+		}
 		
-		m_pWarningBox->SetMessage("CSV file name is empty", WarningStatus::Warning);
-		m_pWarningBox->Init();
-		
-		return;
+		/* CSV -> TXT */
+		if(SourceFileType == IFT_CSV)
+		{
+			strDestFileName += ".txt";
+		}
 	}
 	
-	if(m_pWdgFileNamesReader->GetDestFileText().size() != 0)
+	/* Convertion validation */
+	if(SourceFileType == DestFileType)
 	{
-		strDestFileName = m_pWdgFileNamesReader->GetDestFileText().toStdString();
-	}
-	else
-	{
-		strDestFileName = m_pWdgFileNamesReader->GetDestPlaceholder().toStdString();
-		m_pWdgFileNamesReader->SetDestText(strDestFileName);
-		m_pWdgFileNamesReader->SetDestPlaceholder("");
+		m_pWarningBox->SetMessage("Invalid conversion", WarningStatus::Warning);
+		m_pWarningBox->Init();
+		m_pMainWindow->SetStatusBar("Invalid conversion");
 	}
 
-    CConverter::Trim(&strSourceFileName);
-    CConverter::Trim(&strDestFileName);
-
-    /* Add CSV extanion */
-    size_t zPos_csv = strDestFileName.find(".csv");
-
-    if((zPos_csv == std::string::npos) || (zPos_csv != strDestFileName.size() - 4))
-    {
-        strDestFileName += ".csv";
-    }
-
-    /* Create file options */
+	/* Create file options */
 	FileOptions SourceOptions, DestOptions;
-	
-	AddFileOptions(SourceOptions, DestOptions);
+	AddFileOptions(SourceOptions, DestOptions, SourceFileType, DestFileType);
 	
 	/* Convert */
 	CConverter Converter;
 	
-    ErrorCode Code = Converter.TXTtoCSV(strSourceFileName, strDestFileName, SourceOptions, DestOptions, false);
+	/* Error code */
+	ErrorCode Code;
+	
+	if((SourceFileType == IFT_TXT) && (DestFileType == IFT_CSV))
+	{
+		Code = Converter.TXTtoCSV(strSourceFileName, strDestFileName, SourceOptions, DestOptions, false);
+	}
+    
+	if((SourceFileType == IFT_CSV) && (DestFileType == IFT_TXT))
+	{
+		Code = Converter.CSVtoTXT(strSourceFileName, strDestFileName, SourceOptions, DestOptions, false);
+	}
 	
 	switch (Code)
 	{
@@ -246,62 +261,6 @@ void CWdgConvertPage::ConvertButtonClicked()
 		m_pWarningBox->Init();
 	}
 	}
-	
-//    ConvertOptions CO;
-
-//    if(m_pCheckIgnoreTXTheader->checkState() == Qt::Checked)
-//    {
-//        CO.IgnoreTXTheader = TRUE;
-//    }
-//    else
-//    {
-//        CO.IgnoreTXTheader = FALSE;
-//    }
-
-//    if(m_pCheckAddCSVheader->checkState() == Qt::Checked)
-//    {
-//        CO.AddCSVheader = TRUE;
-//    }
-//    else
-//    {
-//        CO.AddCSVheader = FALSE;
-//    }
-
-//	S32 s32Status;
-//    s32Status = CConverter::s32ConvertTXTtoCSV(strSourceFileName, strDestFileName, &CO);
-
-//	switch(s32Status)
-//	{
-//	case 0:
-//	{
-//		SetStatusBar("Converted to " + strDestFileName);
-//		break;
-//	}
-
-//	case 1:
-//	{
-//		SetStatusBar("File \"" + strSourceFileName + "\" does not exist");
-//		m_pWarningBox->SetMessage("File \"" + strSourceFileName + "\" does not exist", WarningStatus::Warning);
-//		m_pWarningBox->Init();
-		
-//		break;
-//	}
-
-//	case 2:
-//	{
-//		SetStatusBar("Destination \"" + strDestFileName + "\" already exist");
-//		m_pWarningBox->SetMessage("Destination \"" + strDestFileName + "\" already exist", WarningStatus::Warning);
-//		m_pWarningBox->Init();
-//		break;
-//	}
-
-//	default:
-//	{
-//		SetStatusBar("Unknown error");
-//		m_pWarningBox->SetMessage("Unknown error", WarningStatus::Error);
-//		m_pWarningBox->Init();
-//	}
-//	}
 }
 
 

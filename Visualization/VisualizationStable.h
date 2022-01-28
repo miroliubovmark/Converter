@@ -26,13 +26,13 @@
 
 namespace Visualization
 {
+	class CConverter;
 	class CDlgWarning;
 	class CLineEdit;
 	class CWdgFileNamesReader;
 	class CWdgConvertPage;
 	class CWdgGroupDelayPage;
 	class CMainWindow;
-	class CConverter;
 	
 	template<class TX, class TY> class CDataSeries;
 
@@ -40,6 +40,7 @@ namespace Visualization
 } /* End of namespace Tools */
 
 #include "UBaseTypes.h"
+#include "CConverter.h"
 #include "CDlgWarning.h"
 #include "CLineEdit.h"
 #include "CWdgFileNamesReader.h"
@@ -47,6 +48,6 @@ namespace Visualization
 #include "CWdgGroupDelayPage.h"
 #include "CMainWindow.h"
 #include "CMathUtils.h"
-#include "CConverter.h"
+
 
 #endif /* VISUALIZATIONSTABLE_H */

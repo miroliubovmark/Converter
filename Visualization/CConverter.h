@@ -19,7 +19,6 @@ enum FileType
 	FT_CSV
 };
 
-
 struct FileOptions
 {
 	FileType FType;
@@ -44,10 +43,12 @@ public:
 	~CConverter();
 	
 	static void Trim(std::string* str);
-	static BOOL GenerateDestFileNameFromSource(const std::string& crstrSourceFileName, std::string* pstrDestFileName);
 	
 	ErrorCode TXTtoCSV(const std::string& crstrSourceFileName, const std::string& crstrDestFileName, 
                  const FileOptions& crSourecOpt, const FileOptions& crDestcOpt, BOOL bCalculateTau, U32 u32PointCount = 10000);
+	
+	ErrorCode CSVtoTXT(const std::string& crstrSourceFileName, const std::string& crstrDestFileName,
+				 const FileOptions& crSourecOpt, const FileOptions& crDestcOpt, BOOL bCalculateTau, U32 u32PointCount = 10000);
 
     //static S32 s32ConvertTXTtoCSV(std::string strSourceFileName, std::string strDestFileName, ConvertOptions* pOptions = NULL, S8 s8SourceDelimeter = 0x20, S8 s8DestDelimeter = ',');
 	
