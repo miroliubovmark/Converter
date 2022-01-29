@@ -441,7 +441,7 @@ ErrorCode CConverter::TXTtoCSV(const std::string& crstrSourceFileName, const std
     m_pDataSeries->print(std::cout);
 	
     if(bCalculateTau) {
-        DifferenciateData(7);
+        DifferenciateData(4);
     } else{
         InterpolateData(u32PointCount);
     }
